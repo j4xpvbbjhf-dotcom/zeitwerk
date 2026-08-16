@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#131519">
+<title>Zeitwerk</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zeitwerk">
+<script src="./support.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  :root{--f:-apple-system,system-ui,'Helvetica Neue',Arial,sans-serif}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+  body{background:#131519;color:#e9edf2;font-family:var(--f);-webkit-font-smoothing:antialiased}
+  ::-webkit-scrollbar{display:none}
+  input,textarea,select{font-size:16px;font-family:var(--f)}
+  button{font-family:var(--f)}
+  a{color:#6f9bff}a:hover{color:#9db8ff}
+  input::placeholder{color:#8b93a1}
+  .num{font-variant-numeric:tabular-nums;letter-spacing:0}
+  @keyframes zwPulse{0%,100%{opacity:1}50%{opacity:.3}}
+  @keyframes zwShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+  @keyframes zwFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes zwSheet{from{transform:translateY(100%)}to{transform:translateY(0)}}
+</style>
+</helmet>
+
+<div style="--bg:{{t.bg}};--surface:{{t.surface}};--surface2:{{t.surface2}};--fg:{{t.fg}};--muted:{{t.muted}};--border:{{t.border}};--accent:{{t.accent}};--accentSoft:{{t.accentSoft}};--track:{{t.track}};--amber:{{t.amber}};--danger:{{t.danger}};position:relative;width:100%;height:100dvh;overflow:hidden;background:var(--bg,#131519);color:var(--fg,#eef1f5);display:flex;flex-direction:column">
+
+  <div style="flex:none;height:env(safe-area-inset-top,0px)"></div>
+
+  <div class="zw-scroll" style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 20px 26px">
+
+    <!-- ============ HEUTE ============ -->
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <div style="animation:zwFade .25s ease both">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:34px;height:34px;border-radius:10px;background:var(--surface2,#1f232b);border:1px solid var(--border);display:flex;align-items:center;justify-content:center">
+            <svg width="19" height="19" viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" fill="none" stroke="var(--fg,#eef1f5)" stroke-width="2.8"/><circle cx="17" cy="17" r="6.5" fill="none" stroke="var(--fg,#eef1f5)" stroke-width="2.8" stroke-opacity=".55"/><circle cx="17" cy="17" r="2" fill="var(--fg,#eef1f5)"/></svg>
+          </div>
+          <span style="font:700 19px var(--f);letter-spacing:-.2px">Zeitwerk</span>
+        </div>
+        <div style="font:12px var(--f);color:var(--muted,#8b93a1)">{{ todayLong }}</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;margin:2px 0 16px">
+        <div style="position:relative;width:240px;height:240px;max-width:72vw;max-height:72vw">
+          <svg viewBox="0 0 240 240" style="width:100%;height:100%;transform:rotate(-90deg)">
+            <circle cx="120" cy="120" r="104" fill="none" stroke="var(--track,rgba(255,255,255,.07))" stroke-width="15"/>
+            <circle cx="120" cy="120" r="104" fill="none" stroke="var(--accent,#4c82f7)" stroke-width="15" stroke-linecap="round" stroke-dasharray="653.45" stroke-dashoffset="{{ ringOffset }}" style="transition:stroke-dashoffset .5s linear"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
+            <div style="display:flex;align-items:center;gap:7px">
+              <span style="width:8px;height:8px;border-radius:50%;background:{{ statusDot }};{{ statusPulse }}"></span>
+              <span style="font:700 12px var(--f);letter-spacing:.5px;text-transform:uppercase;color:var(--muted,#8b93a1)">{{ statusLabel }}</span>
+            </div>
+            <div class="num" style="font:700 44px var(--f);color:var(--fg,#eef1f5)">{{ timeStr }}</div>
+            <div style="font:12px var(--f);color:var(--muted,#8b93a1)">von {{ daySollStr }} Tagessoll</div>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ isIdle }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ start }}" style="width:100%;height:56px;border:none;border-radius:18px;background:var(--accent,#4c82f7);color:#fff;font:700 17px var(--f);cursor:pointer;box-shadow:0 8px 20px rgba(76,130,247,.3)">Arbeitszeit starten</button>
+      </sc-if>
+      <sc-if value="{{ isRunning }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:12px">
+          <button onClick="{{ pauseToggle }}" style="flex:1;height:56px;border:1px solid var(--border);border-radius:18px;background:var(--surface2,#1f232b);color:var(--amber,#f0a63a);font:700 17px var(--f);cursor:pointer">Pause</button>
+          <button onClick="{{ stop }}" style="flex:1;height:56px;border:none;border-radius:18px;background:var(--danger,#f06a5a);color:#fff;font:700 17px var(--f);cursor:pointer">Stopp</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isPaused }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:12px">
+          <button onClick="{{ pauseToggle }}" style="flex:1;height:56px;border:none;border-radius:18px;background:var(--accent,#4c82f7);color:#fff;font:700 17px var(--f);cursor:pointer">Fortsetzen</button>
+          <button onClick="{{ stop }}" style="flex:1;height:56px;border:none;border-radius:18px;background:var(--danger,#f06a5a);color:#fff;font:700 17px var(--f);cursor:pointer">Stopp</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ notIdle }}" hint-placeholder-val="{{ false }}">
+        <input value="{{ note }}" onInput="{{ onNote }}" placeholder="Notiz zu dieser Arbeitszeit …" style="width:100%;margin-top:12px;height:46px;border:1px solid var(--border);border-radius:14px;background:var(--surface,#171a20);color:var(--fg,#eef1f5);padding:0 14px;outline:none"/>
+        <div style="margin-top:8px;font:12px var(--f);color:var(--muted,#8b93a1);text-align:center">Gestartet um {{ startedAtStr }}</div>
+      </sc-if>
+
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <div style="flex:1;background:var(--surface,#171a20);border:1px solid var(--border);border-radius:16px;padding:13px">
+          <div style="font:11px var(--f);color:var(--muted,#8b93a1)">Gearbeitet</div>
+          <div class="num" style="font:700 18px var(--f);margin-top:3px">{{ todayWorkedStr }}</div>
+        </div>
+        <div style="flex:1;background:var(--surface,#171a20);border:1px solid var(--border);border-radius:16px;padding:13px">
+          <div style="font:11px var(--f);color:var(--muted,#8b93a1)">Pause</div>
+          <div class="num" style="font:700 18px var(--f);margin-top:3px">{{ todayBreakStr }}</div>
+        </div>
+        <div style="flex:1;background:var(--surface,#171a20);border:1px solid var(--border);border-radius:16px;padding:13px">
+          <div style="font:11px var(--f);color:var(--muted,#8b93a1)">Rest bis Soll</div>
+          <div class="num" style="font:700 18px var(--f);margin-top:3px">{{ restStr }}</div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;background:var(--accentSoft,rgba(76,130,247,.16));border:1px solid var(--border);border-radius:16px;padding:15px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div style="min-width:0">
+          <div style="font:12px var(--f);color:var(--muted,#8b93a1)">Saldo diese Woche</div>
+          <div style="font:600 13px var(--f);margin-top:2px;color:var(--fg,#eef1f5)">Soll bis heute {{ weekSollSoFarStr }}</div>
+        </div>
+        <div class="num" style="font:700 26px var(--f);color:{{ balanceColor }};flex-shrink:0">{{ weekBalanceStr }}</div>
+      </div>
+
+      <sc-if value="{{ hasTodayEntries }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:20px">
+          <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 4px 8px">Heute bereits erfasst</div>
+          <div style="background:var(--surface,#171a20);border:1px solid var(--border);border-radius:18px;overflow:hidden">
+            <sc-for list="{{ todayEntries }}" as="e" hint-placeholder-count="1">
+              <div onClick="{{ e.onEdit }}" style="display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--border);cursor:pointer">
+                <div style="flex:1;min-width:0">
+                  <div class="num" style="font:13px var(--f);color:var(--fg,#eef1f5)">{{ e.range }}</div>
+                  <div style="font:12px var(--f);color:var(--muted,#8b93a1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ e.sub }}</div>
+                </div>
+                <div class="num" style="font:700 15px var(--f);flex-shrink:0">{{ e.worked }}</div>
+                <svg width="7" height="12" viewBox="0 0 7 12" style="flex-shrink:0;opacity:.4"><path d="M1 1l5 5-5 5" stroke="var(--muted,#8b93a1)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <!-- ============ VERLAUF ============ -->
+    <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:zwFade .25s ease both">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:2px 0 18px">
+        <h1 style="font:700 30px var(--f);letter-spacing:-.4px;margin:0">Verlauf</h1>
+        <button onClick="{{ openNew }}" style="display:flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:none;border-radius:12px;background:var(--accent,#4c82f7);color:#fff;font:700 13px var(--f);cursor:pointer;box-shadow:0 4px 12px rgba(76,130,247,.28)">
+          <svg width="15" height="15" viewBox="0 0 15 15"><path d="M7.5 2v11M2 7.5h11" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+          Eintrag
+        </button>
+      </div>
+
+      <sc-if value="{{ historyEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface,#171a20);border:1px solid var(--border);border-radius:20px;padding:34px 22px;text-align:center">
+          <div style="font:700 16px var(--f);margin-bottom:6px">Noch nichts erfasst</div>
+          <div style="font:13px/1.5 var(--f);color:var(--muted,#8b93a1)">Starte im Tab Heute die erste Arbeitszeit oder trage über „Eintrag“ eine vergangene Zeit von Hand nach.</div>
+        </div>
+      </sc-if>
+
+      <sc-for list="{{ weeks }}" as="wk" hint-placeholder-count="2">
+        <div style="margin-bottom:22px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;padding:0 2px;gap:10px">
+            <span style="font:700 14px var(--f);color:var(--fg,#eef1f5)">{{ wk.label }}</span>
+            <span class="num" style="font:600 13px var(--f);color:{{ wk.balColor }};flex-shrink:0">{{ wk.totalStr }} · {{ wk.balStr }}</span>
+          </div>
+          <div style="background:var(--surface,#171a20);border:1px solid var(--border);border-radius:18px;overflow:hidden">
+            <sc-for list="{{ wk.days }}" as="d" hint-placeholder-count="3">
+              <div style="display:flex;gap:12px;padding:13px 15px;border-bottom:1px solid var(--border)">
+                <div style="width:40px;text-align:center;flex-shrink:0;padding-top:1px">
+                  <div style="font:700 13px var(--f);color:var(--fg,#eef1f5)">{{ d.day }}</div>
+                  <div style="font:11px var(--f);color:var(--muted,#8b93a1)">{{ d.date }}</div>
+                </div>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:11px">
+                  <sc-for list="{{ d.sessions }}" as="e" hint-placeholder-count="1">
+                    <div onClick="{{ e.onEdit }}" style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                      <div style="flex:1;min-width:0">
+                        <div class="num" style="font:13px var(--f);color:var(--fg,#eef1f5)">{{ e.range }}</div>
+                        <div style="font:12px var(--f);color:var(--muted,#8b93a1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ e.sub }}</div>
+                      </div>
+                      <div class="num" style="font:700 15px var(--f);color:var(--fg,#eef1f5);flex-shrink:0">{{ e.worked }}</div>
+                      <svg width="7" height="12" viewBox="0 0 7 12" style="flex-shrink:0;opacity:.4"><path d="M1 1l5 5-5 5" stroke="var(--muted,#8b93a1)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <!-- ============ ÜBERSICHT ============ -->
+    <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:zwFade .25s ease both">
+      <h1 style="font:700 30px var(--f);letter-spacing:-.4px;margin:2px 0 16px">Übersicht</h1>
+      <div style="display:flex;gap:6px;background:var(--surface2,#1f232b);border-radius:12px;padding:4px;margin-bottom:18px">
+        <button onClick="{{ setWeek }}" style="flex:1;height:34px;border:none;border-radius:9px;font:700 13px var(--f);cursor:pointer;background:{{ ovWeekBg }};color:{{ ovWeekFg }}">Woche</button>
+        <button onClick="{{ setMonth }}" style="flex:1;height:34px;border:none;border-radius:9px;font:700 13px var(--f);cursor:pointer;background:{{ ovMonthBg }};color:{{ ovMonthFg }}">Monat</button>
+      </div>
+
+      <div style="background:var(--surface,#171a20);border:1px solid var(--border);border-radius:22px;padding:20px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span style="font:11px var(--f);color:var(--muted,#8b93a1);letter-spacing:.4px;text-transform:uppercase">Saldo</span>
+          <span style="font:12px var(--f);color:var(--muted,#8b93a1);text-align:right">{{ ovRangeLabel }}</span>
+        </div>
+        <div class="num" style="font:700 52px var(--f);line-height:1.04;margin-top:6px;color:{{ ovBalColor }}">{{ ovBalanceStr }}</div>
+        <div style="margin-top:18px">
+          <div style="display:flex;justify-content:space-between;font:12px var(--f);color:var(--muted,#8b93a1);margin-bottom:7px">
+            <span>Gearbeitet <b class="num" style="color:var(--fg,#eef1f5)">{{ ovTotalStr }}</b></span>
+            <span>Soll bis heute <b class="num" style="color:var(--fg,#eef1f5)">{{ ovSollStr }}</b></span>
+          </div>
+          <div style="height:9px;border-radius:5px;background:var(--track,rgba(255,255,255,.07));overflow:hidden">
+            <div style="height:100%;width:{{ ovProgPct }}%;border-radius:5px;background:var(--accent,#4c82f7);transition:width .5s ease"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface,#171a20);border:1px solid var(--border);border-radius:22px;padding:18px 16px 14px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px">
+          <span style="font:700 14px var(--f);color:var(--fg,#eef1f5)">{{ ovChartTitle }}</span>
+          <span style="font:11px var(--f);color:var(--muted,#8b93a1)">{{ ovChartLabel }}</span>
+        </div>
+        <div style="position:relative;height:176px;display:flex;align-items:flex-end;justify-content:space-between;gap:6px;padding-bottom:24px">
+          <div style="position:absolute;left:0;right:0;top:{{ sollLineTop }}px;border-top:1.5px dashed var(--accent,#4c82f7);opacity:.5"></div>
+          <span style="position:absolute;right:0;top:{{ sollChipTop }}px;font:600 10px var(--f);color:var(--accent,#4c82f7);background:var(--surface,#171a20);padding:0 3px">Soll</span>
+          <sc-for list="{{ bars }}" as="b" hint-placeholder-count="7">
+            <div style="flex:1;min-width:0;position:relative;display:flex;flex-direction:column;align-items:center;height:100%;padding-bottom:22px;justify-content:flex-end">
+              <div class="num" style="font:600 9px var(--f);color:var(--muted,#8b93a1);margin-bottom:5px;height:12px">{{ b.valShow }}</div>
+              <div style="width:100%;max-width:32px;height:{{ b.h }}px;border-radius:7px 7px 3px 3px;background:{{ b.color }}"></div>
+              <div style="position:absolute;bottom:0;font:600 11px var(--f);color:var(--muted,#8b93a1)">{{ b.day }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:8px;padding-top:12px;border-top:1px solid var(--border);font:11px var(--f);color:var(--muted,#8b93a1);flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:11px;border-radius:3px;background:var(--accent,#4c82f7);display:inline-block"></span> Soll erreicht</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:11px;border-radius:3px;background:{{ barLowColor }};display:inline-block"></span> darunter</span>
+          <span style="margin-left:auto">{{ sollLegend }}</span>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ EINSTELLUNGEN ============ -->
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:zwFade .25s ease both">
+      <h1 style="font:700 30px var(--f);letter-spacing:-.4px;margin:2px 0 18px">Einstellungen</h1>
+
+      <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 4px 8px">Erscheinungsbild</div>
+      <div style="display:flex;gap:6px;background:var(--surface2,#1f232b);border-radius:13px;padding:4px;margin-bottom:22px">
+        <button onClick="{{ setLight }}" style="flex:1;height:36px;border:none;border-radius:9px;font:600 13px var(--f);cursor:pointer;background:{{ thLightBg }};color:{{ thLightFg }};transition:background .15s,color .15s">Hell</button>
+        <button onClick="{{ setDark }}" style="flex:1;height:36px;border:none;border-radius:9px;font:600 13px var(--f);cursor:pointer;background:{{ thDarkBg }};color:{{ thDarkFg }};transition:background .15s,color .15s">Dunkel</button>
+        <button onClick="{{ setAuto }}" style="flex:1;height:36px;border:none;border-radius:9px;font:600 13px var(--f);cursor:pointer;background:{{ thAutoBg }};color:{{ thAutoFg }};transition:background .15s,color .15s">Automatisch</button>
+      </div>
+
+      <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 4px 8px">Arbeitszeit</div>
+      <div style="background:var(--surface,#171a20);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);gap:10px">
+          <div style="min-width:0"><div style="font:15px var(--f)">Wochenstunden</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">Tagessoll {{ daySollStr }} auf Mo bis Fr</div></div>
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+            <button onClick="{{ decHours }}" style="width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 18px var(--f);cursor:pointer">–</button>
+            <span class="num" style="font:700 15px var(--f);min-width:54px;text-align:center">{{ weeklyHoursStr }}</span>
+            <button onClick="{{ incHours }}" style="width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 18px var(--f);cursor:pointer">+</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;gap:10px">
+          <div style="flex:1;min-width:0"><div style="font:15px var(--f)">Pausen-Erinnerung</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">Erinnert an eine Pause nach dieser Zeit ohne Unterbrechung</div></div>
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+            <button onClick="{{ decRem }}" style="width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 18px var(--f);cursor:pointer">–</button>
+            <span class="num" style="font:700 15px var(--f);min-width:54px;text-align:center">{{ reminderHoursStr }}</span>
+            <button onClick="{{ incRem }}" style="width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 18px var(--f);cursor:pointer">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 4px 8px">Daten</div>
+      <div style="background:var(--surface,#171a20);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:22px">
+        <button onClick="{{ openExport }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--fg,#eef1f5);cursor:pointer;text-align:left;gap:10px">
+          <div><div style="font:15px var(--f)">Verlauf exportieren</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">CSV für Excel · Zeitraum wählbar</div></div>
+          <svg width="8" height="14" viewBox="0 0 8 14" style="flex-shrink:0"><path d="M1 1l6 6-6 6" stroke="var(--muted,#8b93a1)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button onClick="{{ askWipe }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border:none;background:transparent;color:var(--danger,#f06a5a);cursor:pointer;text-align:left;gap:10px">
+          <div><div style="font:15px var(--f)">Alle Daten löschen</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">{{ entryCountStr }} auf diesem Gerät</div></div>
+        </button>
+      </div>
+
+      <div style="text-align:center;font:12px/1.6 var(--f);color:var(--muted,#8b93a1);padding:4px 0 8px">Zeitwerk · Version {{ version }}<br/>Die Daten liegen nur auf diesem Gerät</div>
+    </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ============ TAB BAR ============ -->
+  <div style="flex:none;display:flex;align-items:flex-start;gap:4px;padding:6px 12px 0;background:var(--surface,#171a20);border-top:1px solid var(--border);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)">
+    <button onClick="{{ goHome }}" style="flex:1;height:52px;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:{{ tabHomeC }}">
+      <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span style="font:600 10px var(--f)">Heute</span>
+    </button>
+    <button onClick="{{ goHistory }}" style="flex:1;height:52px;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:{{ tabHistC }}">
+      <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="2.4" rx="1.2" fill="currentColor"/><rect x="4" y="11" width="16" height="2.4" rx="1.2" fill="currentColor"/><rect x="4" y="16" width="10" height="2.4" rx="1.2" fill="currentColor"/></svg>
+      <span style="font:600 10px var(--f)">Verlauf</span>
+    </button>
+    <button onClick="{{ goOverview }}" style="flex:1;height:52px;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:{{ tabOvC }}">
+      <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="13" width="4" height="7" rx="1.2" fill="currentColor"/><rect x="10" y="8" width="4" height="12" rx="1.2" fill="currentColor"/><rect x="16" y="4" width="4" height="16" rx="1.2" fill="currentColor"/></svg>
+      <span style="font:600 10px var(--f)">Übersicht</span>
+    </button>
+    <button onClick="{{ goSettings }}" style="flex:1;height:52px;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:{{ tabSetC }}">
+      <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="2.2" rx="1.1" fill="currentColor"/><circle cx="9" cy="8.1" r="3" fill="currentColor"/><rect x="4" y="15" width="16" height="2.2" rx="1.1" fill="currentColor"/><circle cx="15" cy="16.1" r="3" fill="currentColor"/></svg>
+      <span style="font:600 10px var(--f)">Einstellungen</span>
+    </button>
+  </div>
+
+  <!-- ============ PAUSEN-ERINNERUNG ============ -->
+  <sc-if value="{{ reminderOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:26px">
+    <div style="width:100%;max-width:380px;background:var(--surface,#171a20);border:1px solid var(--amber,#f0a63a);border-radius:26px;padding:26px 22px;text-align:center;animation:zwShake .5s ease">
+      <div style="width:64px;height:64px;border-radius:20px;background:var(--amber,#f0a63a);margin:0 auto 16px;display:flex;align-items:center;justify-content:center">
+        <svg width="34" height="34" viewBox="0 0 24 24"><rect x="8.5" y="6" width="2.6" height="9" rx="1.3" fill="#1a1200"/><rect x="12.9" y="6" width="2.6" height="9" rx="1.3" fill="#1a1200"/></svg>
+      </div>
+      <div style="font:700 21px var(--f);color:var(--fg,#eef1f5);margin-bottom:8px">Zeit für eine Pause</div>
+      <div style="font:14px/1.5 var(--f);color:var(--muted,#8b93a1);margin-bottom:20px">Du arbeitest seit {{ sinceBreakStr }} ohne Pause.</div>
+      <button onClick="{{ takeBreak }}" style="width:100%;height:50px;border:none;border-radius:15px;background:var(--amber,#f0a63a);color:#1a1200;font:700 16px var(--f);cursor:pointer;margin-bottom:10px">Pause starten</button>
+      <button onClick="{{ dismissReminder }}" style="width:100%;height:44px;border:none;background:transparent;color:var(--muted,#8b93a1);font:600 14px var(--f);cursor:pointer">Später erinnern (in 15 Min)</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ EXPORT SHEET ============ -->
+  <sc-if value="{{ exportOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeExport }}" style="position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.5);display:flex;align-items:flex-end">
+    <div onClick="{{ swallow }}" style="width:100%;max-height:92%;overflow-y:auto;background:var(--bg,#131519);border-radius:28px 28px 0 0;border-top:1px solid var(--border);padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 26px);animation:zwSheet .3s ease">
+      <div style="width:38px;height:5px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h2 style="font:700 22px var(--f);margin:0">Exportieren</h2>
+        <button onClick="{{ closeExport }}" style="border:none;background:var(--surface2,#1f232b);color:var(--muted,#8b93a1);width:30px;height:30px;border-radius:50%;font:700 15px var(--f);cursor:pointer">✕</button>
+      </div>
+
+      <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 2px 8px">Zeitraum</div>
+      <div style="display:flex;gap:6px;background:var(--surface2,#1f232b);border-radius:12px;padding:4px;margin-bottom:14px">
+        <button onClick="{{ exWeek }}" style="flex:1;height:36px;border:none;border-radius:9px;font:700 13px var(--f);cursor:pointer;background:{{ exWeekBg }};color:{{ exWeekFg }}">Woche</button>
+        <button onClick="{{ exMonth }}" style="flex:1;height:36px;border:none;border-radius:9px;font:700 13px var(--f);cursor:pointer;background:{{ exMonthBg }};color:{{ exMonthFg }}">Monat</button>
+        <button onClick="{{ exCustom }}" style="flex:1;height:36px;border:none;border-radius:9px;font:700 13px var(--f);cursor:pointer;background:{{ exCustomBg }};color:{{ exCustomFg }}">Eigener</button>
+      </div>
+
+      <sc-if value="{{ exIsCustom }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:10px;margin-bottom:14px">
+          <div style="flex:1"><div style="font:11px var(--f);color:var(--muted,#8b93a1);margin-bottom:5px">Von</div><input type="date" value="{{ exFrom }}" onInput="{{ onExFrom }}" style="width:100%;height:44px;border:1px solid var(--border);border-radius:11px;background:var(--surface,#171a20);color:var(--fg,#eef1f5);padding:0 10px;outline:none"/></div>
+          <div style="flex:1"><div style="font:11px var(--f);color:var(--muted,#8b93a1);margin-bottom:5px">Bis</div><input type="date" value="{{ exTo }}" onInput="{{ onExTo }}" style="width:100%;height:44px;border:1px solid var(--border);border-radius:11px;background:var(--surface,#171a20);color:var(--fg,#eef1f5);padding:0 10px;outline:none"/></div>
+        </div>
+      </sc-if>
+
+      <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:2px 2px 8px">Vorschau · {{ exCountStr }} · {{ exSumStr }}</div>
+      <pre class="num" style="background:var(--surface,#171a20);border:1px solid var(--border);border-radius:12px;padding:12px;margin:0 0 16px;max-height:150px;overflow:auto;font:11px/1.6 var(--f);color:var(--muted,#8b93a1);white-space:pre">{{ csvText }}</pre>
+
+      <button onClick="{{ downloadCsv }}" style="width:100%;height:52px;border:none;border-radius:16px;background:var(--accent,#4c82f7);color:#fff;font:700 16px var(--f);cursor:pointer">{{ exportBtnLabel }}</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ EINTRAG BEARBEITEN / HINZUFÜGEN ============ -->
+  <sc-if value="{{ editOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeEdit }}" style="position:fixed;inset:0;z-index:85;background:rgba(0,0,0,.5);display:flex;align-items:flex-end">
+    <div onClick="{{ swallow }}" style="width:100%;max-height:92%;overflow-y:auto;background:var(--bg,#131519);border-radius:28px 28px 0 0;border-top:1px solid var(--border);padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 26px);animation:zwSheet .3s ease">
+      <div style="width:38px;height:5px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <h2 style="font:700 22px var(--f);margin:0">{{ editTitle }}</h2>
+        <button onClick="{{ closeEdit }}" style="border:none;background:var(--surface2,#1f232b);color:var(--muted,#8b93a1);width:30px;height:30px;border-radius:50%;font:700 15px var(--f);cursor:pointer">✕</button>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 2px 6px">Datum</div>
+        <input type="date" value="{{ edDate }}" onInput="{{ onEdDate }}" style="width:100%;height:46px;border:1px solid var(--border);border-radius:13px;background:var(--surface,#171a20);color:var(--fg,#eef1f5);padding:0 12px;outline:none"/>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <div style="flex:1">
+          <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 2px 6px">Start</div>
+          <input type="time" value="{{ edStart }}" onInput="{{ onEdStart }}" style="width:100%;height:46px;border:1px solid var(--border);border-radius:13px;background:var(--surface,#171a20);color:var(--fg,#eef1f5);padding:0 12px;outline:none"/>
+        </div>
+        <div style="flex:1">
+          <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 2px 6px">Ende</div>
+          <input type="time" value="{{ edEnd }}" onInput="{{ onEdEnd }}" style="width:100%;height:46px;border:1px solid var(--border);border-radius:13px;background:var(--surface,#171a20);color:var(--fg,#eef1f5);padding:0 12px;outline:none"/>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface,#171a20);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:12px;gap:10px">
+        <div style="min-width:0"><div style="font:14px var(--f)">Pause</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">Gearbeitet {{ edWorkedStr }}</div></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+          <button onClick="{{ decEdBrk }}" style="width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 18px var(--f);cursor:pointer">–</button>
+          <span class="num" style="font:700 15px var(--f);min-width:52px;text-align:center">{{ edBrkStr }}</span>
+          <button onClick="{{ incEdBrk }}" style="width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 18px var(--f);cursor:pointer">+</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:18px">
+        <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 2px 6px">Notiz</div>
+        <input value="{{ edNote }}" onInput="{{ onEdNote }}" placeholder="Woran hast du gearbeitet?" style="width:100%;height:46px;border:1px solid var(--border);border-radius:13px;background:var(--surface,#171a20);color:var(--fg,#eef1f5);padding:0 12px;outline:none"/>
+      </div>
+
+      <button onClick="{{ saveEdit }}" style="width:100%;height:52px;border:none;border-radius:16px;background:var(--accent,#4c82f7);color:#fff;font:700 16px var(--f);cursor:pointer">Speichern</button>
+      <sc-if value="{{ edIsExisting }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ deleteEntry }}" style="width:100%;height:44px;margin-top:10px;border:none;background:transparent;color:var(--danger,#f06a5a);font:600 14px var(--f);cursor:pointer">Eintrag löschen</button>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ ALLES LÖSCHEN ============ -->
+  <sc-if value="{{ wipeOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:26px">
+    <div style="width:100%;max-width:380px;background:var(--surface,#171a20);border:1px solid var(--border);border-radius:26px;padding:24px 22px;text-align:center">
+      <div style="font:700 19px var(--f);margin-bottom:8px">Wirklich alles löschen?</div>
+      <div style="font:14px/1.5 var(--f);color:var(--muted,#8b93a1);margin-bottom:20px">{{ entryCountStr }} und die laufende Erfassung werden von diesem Gerät entfernt. Das lässt sich nicht rückgängig machen.</div>
+      <button onClick="{{ doWipe }}" style="width:100%;height:50px;border:none;border-radius:15px;background:var(--danger,#f06a5a);color:#fff;font:700 16px var(--f);cursor:pointer;margin-bottom:10px">Alles löschen</button>
+      <button onClick="{{ cancelWipe }}" style="width:100%;height:44px;border:none;background:transparent;color:var(--muted,#8b93a1);font:600 14px var(--f);cursor:pointer">Abbrechen</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ TOAST ============ -->
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:95;display:flex;justify-content:center;padding:0 24px;pointer-events:none">
+    <div style="background:var(--surface2,#1f232b);border:1px solid var(--border);border-radius:14px;padding:11px 16px;font:13px var(--f);color:var(--fg,#eef1f5);box-shadow:0 10px 26px rgba(0,0,0,.4);animation:zwFade .2s ease both">{{ toast }}</div>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ZW_KEY = 'zeitwerk.v1';
+const ZW_VERSION = '1.0';
+const DAYS_SHORT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+class Component extends DCLogic {
+  state = {
+    tab: 'home',
+    themeMode: 'auto', systemDark: true,
+    entries: [],
+    weeklyHours: 38.5,
+    reminderMins: 360,
+    run: null,
+    now: Date.now(),
+    ov: 'week',
+    exportOpen: false, exRange: 'week', exFrom: '', exTo: '',
+    editOpen: false, edId: null,
+    edDate: '', edStart: '09:00', edEnd: '17:00', edBrkMin: 30, edNote: '',
+    reminderOpen: false,
+    wipeOpen: false,
+    toast: '',
+  };
+
+  // ============================ Lebenszyklus ============================
+
+  componentDidMount() {
+    this.load();
+    try {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      this.setState({ systemDark: mq.matches });
+      this._mq = mq;
+      this._mqL = e => this.setState({ systemDark: e.matches });
+      mq.addEventListener('change', this._mqL);
+    } catch (e) {}
+    this._t = setInterval(() => this.tick(), 1000);
+    // Kommt die App aus dem Hintergrund zurück, sofort nachziehen statt bis
+    // zum nächsten Sekundentakt zu warten.
+    this._vis = () => { if (!document.hidden) this.tick(); };
+    document.addEventListener('visibilitychange', this._vis);
+    window.addEventListener('focus', this._vis);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this._t);
+    clearTimeout(this._toastT);
+    if (this._mq && this._mqL) this._mq.removeEventListener('change', this._mqL);
+    document.removeEventListener('visibilitychange', this._vis);
+    window.removeEventListener('focus', this._vis);
+  }
+
+  componentDidUpdate() { this.save(); }
+
+  tick() {
+    const now = Date.now();
+    const s = this.state;
+    const patch = { now };
+    // Erinnerung auch rückwirkend prüfen, damit sie nicht verloren geht,
+    // wenn die App währenddessen im Hintergrund lag.
+    if (s.run && !s.reminderOpen) {
+      const st = this.runStats(now);
+      const due = s.reminderMins * 60;
+      if (st.status === 'running' && st.since >= due && !s.run.remindDone && now >= (s.run.snooze || 0)) {
+        patch.reminderOpen = true;
+        patch.run = { ...s.run, remindDone: true };
+      }
+    }
+    this.setState(patch);
+  }
+
+  // ============================ Speichern ============================
+
+  load() {
+    let raw = null;
+    try { raw = localStorage.getItem(ZW_KEY); } catch (e) {}
+    if (!raw) { this._saved = null; return; }
+    try {
+      const d = JSON.parse(raw);
+      const patch = {};
+      if (Array.isArray(d.entries)) patch.entries = d.entries;
+      if (typeof d.weeklyHours === 'number') patch.weeklyHours = d.weeklyHours;
+      if (typeof d.reminderMins === 'number') patch.reminderMins = d.reminderMins;
+      if (typeof d.themeMode === 'string') patch.themeMode = d.themeMode;
+      if (d.run && typeof d.run.startedAt === 'number') {
+        patch.run = { pauses: [], note: '', remindDone: false, snooze: 0, ...d.run };
+      }
+      this.setState(patch);
+    } catch (e) {}
+  }
+
+  save() {
+    const s = this.state;
+    const data = {
+      v: 1,
+      entries: s.entries,
+      weeklyHours: s.weeklyHours,
+      reminderMins: s.reminderMins,
+      themeMode: s.themeMode,
+      run: s.run,
+    };
+    const json = JSON.stringify(data);
+    if (json === this._saved) return;
+    try { localStorage.setItem(ZW_KEY, json); this._saved = json; } catch (e) {}
+  }
+
+  // ============================ Formatierung ============================
+
+  pad(n) { return String(n).padStart(2, '0'); }
+  fmtClock(sec) { sec = Math.max(0, Math.floor(sec)); const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60); return h + ':' + this.pad(m) + ':' + this.pad(sec%60); }
+  fmtDur(sec) { sec = Math.max(0, Math.floor(sec)); return Math.floor(sec/3600) + ':' + this.pad(Math.floor((sec%3600)/60)); }
+  fmtSigned(sec) { const r = Math.round(sec); return (r < 0 ? '−' : '+') + this.fmtDur(Math.abs(r)); }
+  fmtHours(h) { return String(h).replace('.', ',') + ' h'; }
+  hhmm(ms) { const d = new Date(ms); return this.pad(d.getHours()) + ':' + this.pad(d.getMinutes()); }
+
+  // ============================ Datum ============================
+
+  iso(d) { return d.getFullYear() + '-' + this.pad(d.getMonth()+1) + '-' + this.pad(d.getDate()); }
+  parseIso(s) { const p = String(s || '').split('-'); return new Date(+p[0], (+p[1] || 1) - 1, +p[2] || 1); }
+  dowMon(d) { return (d.getDay() + 6) % 7; }                       // Mo = 0 … So = 6
+  midnight(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  mondayOf(d) { const x = this.midnight(d); x.setDate(x.getDate() - this.dowMon(x)); return x; }
+  addDays(d, n) { const x = this.midnight(d); x.setDate(x.getDate() + n); return x; }
+  hmToMin(hm) { const p = String(hm || '0:0').split(':'); return (+p[0] || 0) * 60 + (+p[1] || 0); }
+  dmy(isoStr) { const p = String(isoStr).split('-'); return p[2] + '.' + p[1] + '.' + p[0]; }
+  dm(isoStr) { const p = String(isoStr).split('-'); return p[2] + '.' + p[1]; }
+  dmShort(d) { return d.getDate() + '.' + (d.getMonth()+1) + '.'; }
+
+  isoWeek(d) {
+    const x = this.midnight(d);
+    x.setDate(x.getDate() + 3 - this.dowMon(x));                   // Donnerstag dieser Woche
+    const jan4 = new Date(x.getFullYear(), 0, 4);
+    return 1 + Math.round(((x - jan4) / 86400000 - 3 + this.dowMon(jan4)) / 7);
+  }
+  isoWeekYear(d) { const x = this.midnight(d); x.setDate(x.getDate() + 3 - this.dowMon(x)); return x.getFullYear(); }
+  weekKey(d) { return this.isoWeekYear(d) + '-W' + this.pad(this.isoWeek(d)); }
+
+  // Arbeitstage Mo bis Fr zwischen zwei Daten, beide inklusive.
+  workdaysBetween(from, to) {
+    let n = 0;
+    const a = this.midnight(from), b = this.midnight(to);
+    for (let d = new Date(a); d <= b; d.setDate(d.getDate() + 1)) {
+      if (this.dowMon(d) < 5) n++;
+    }
+    return n;
+  }
+
+  daySollSec() { return this.state.weeklyHours * 3600 / 5; }
+
+  // Soll einer Woche. Läuft die Woche noch, zählt nur bis heute.
+  weekSoll(monday) {
+    const today = this.midnight(new Date());
+    const sunday = this.addDays(monday, 6);
+    if (sunday < today) return this.daySollSec() * 5;
+    if (monday > today) return 0;
+    return this.daySollSec() * this.workdaysBetween(monday, today);
+  }
+
+  monthSoll(year, month) {
+    const today = this.midnight(new Date());
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
+    if (first > today) return 0;
+    const end = last < today ? last : today;
+    return this.daySollSec() * this.workdaysBetween(first, end);
+  }
+
+  // ============================ Laufende Erfassung ============================
+
+  runStats(now) {
+    const r = this.state.run;
+    if (!r) return { status: 'idle', work: 0, brk: 0, since: 0 };
+    now = now || this.state.now;
+    let brkMs = 0, lastResume = r.startedAt, open = false;
+    (r.pauses || []).forEach(p => {
+      const to = p.to == null ? now : p.to;
+      brkMs += Math.max(0, to - p.from);
+      if (p.to == null) open = true;
+      else if (p.to > lastResume) lastResume = p.to;
+    });
+    const workMs = Math.max(0, now - r.startedAt - brkMs);
+    return {
+      status: open ? 'paused' : 'running',
+      work: workMs / 1000,
+      brk: brkMs / 1000,
+      since: open ? 0 : Math.max(0, now - lastResume) / 1000,
+    };
+  }
+
+  start() {
+    const now = Date.now();
+    this.setState({ now, run: { startedAt: now, pauses: [], note: '', remindDone: false, snooze: 0 } });
+  }
+
+  pauseToggle() {
+    const now = Date.now();
+    this.setState(s => {
+      if (!s.run) return null;
+      const pauses = [...(s.run.pauses || [])];
+      const last = pauses[pauses.length - 1];
+      if (last && last.to == null) {
+        pauses[pauses.length - 1] = { ...last, to: now };
+        return { now, run: { ...s.run, pauses, remindDone: false, snooze: 0 }, reminderOpen: false };
+      }
+      pauses.push({ from: now, to: null });
+      return { now, run: { ...s.run, pauses }, reminderOpen: false };
+    });
+  }
+
+  stop() {
+    const now = Date.now();
+    const s = this.state;
+    if (!s.run) return;
+    const st = this.runStats(now);
+    if (st.work < 60) {
+      this.setState({ run: null, reminderOpen: false });
+      this.toast('Unter einer Minute, nichts gespeichert');
+      return;
+    }
+    const startDate = new Date(s.run.startedAt);
+    const entry = {
+      id: 'e' + s.run.startedAt,
+      date: this.iso(startDate),
+      start: this.hhmm(s.run.startedAt),
+      end: this.hhmm(now),
+      worked: Math.round(st.work),
+      brk: Math.round(st.brk),
+      note: (s.run.note || '').trim(),
+    };
+    this.setState({ entries: [entry, ...s.entries], run: null, reminderOpen: false, now });
+    this.toast('Gespeichert · ' + this.fmtDur(entry.worked) + ' h');
+  }
+
+  onNote(e) { const v = e.target.value; this.setState(s => s.run ? { run: { ...s.run, note: v } } : null); }
+
+  takeBreak() {
+    const now = Date.now();
+    this.setState(s => {
+      if (!s.run) return { reminderOpen: false };
+      const pauses = [...(s.run.pauses || [])];
+      const last = pauses[pauses.length - 1];
+      if (!last || last.to != null) pauses.push({ from: now, to: null });
+      return { now, run: { ...s.run, pauses }, reminderOpen: false };
+    });
+  }
+
+  dismissReminder() {
+    this.setState(s => ({
+      reminderOpen: false,
+      run: s.run ? { ...s.run, remindDone: false, snooze: Date.now() + 15 * 60000 } : s.run,
+    }));
+  }
+
+  // ============================ Einstellungen ============================
+
+  incHours() { this.setState(s => ({ weeklyHours: Math.min(80, Math.round((s.weeklyHours + 0.5) * 2) / 2) })); }
+  decHours() { this.setState(s => ({ weeklyHours: Math.max(1, Math.round((s.weeklyHours - 0.5) * 2) / 2) })); }
+  incRem() { this.setState(s => ({ reminderMins: Math.min(720, s.reminderMins + 30) })); }
+  decRem() { this.setState(s => ({ reminderMins: Math.max(30, s.reminderMins - 30) })); }
+
+  askWipe() { this.setState({ wipeOpen: true }); }
+  cancelWipe() { this.setState({ wipeOpen: false }); }
+  doWipe() {
+    this.setState({ entries: [], run: null, reminderOpen: false, wipeOpen: false, editOpen: false, exportOpen: false });
+    this.toast('Alle Daten gelöscht');
+  }
+
+  toast(msg) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: msg });
+    this._toastT = setTimeout(() => this.setState({ toast: '' }), 2600);
+  }
+
+  // ============================ Einträge bearbeiten ============================
+
+  openEdit(id) {
+    const e = this.state.entries.find(x => x.id === id);
+    if (!e) return;
+    this.setState({
+      editOpen: true, edId: id, edDate: e.date, edStart: e.start, edEnd: e.end,
+      edBrkMin: Math.round(e.brk / 60), edNote: e.note || '',
+    });
+  }
+
+  openNew() {
+    this.setState({
+      editOpen: true, edId: null, edDate: this.iso(new Date()),
+      edStart: '09:00', edEnd: '17:00', edBrkMin: 30, edNote: '',
+    });
+  }
+
+  closeEdit() { this.setState({ editOpen: false }); }
+
+  editWorkedSec() {
+    const s = this.state;
+    let diff = this.hmToMin(s.edEnd) - this.hmToMin(s.edStart);
+    if (diff < 0) diff += 1440;                                    // über Mitternacht
+    return Math.max(0, diff * 60 - s.edBrkMin * 60);
+  }
+
+  saveEdit() {
+    const s = this.state;
+    if (!s.edDate) { this.toast('Bitte ein Datum wählen'); return; }
+    const worked = this.editWorkedSec();
+    const entry = {
+      id: s.edId || ('e' + Date.now()),
+      date: s.edDate, start: s.edStart, end: s.edEnd,
+      worked, brk: s.edBrkMin * 60, note: (s.edNote || '').trim(),
+    };
+    const entries = s.edId
+      ? s.entries.map(x => x.id === s.edId ? entry : x)
+      : [entry, ...s.entries];
+    this.setState({ entries, editOpen: false });
+    this.toast(s.edId ? 'Eintrag geändert' : 'Eintrag hinzugefügt');
+  }
+
+  deleteEntry() {
+    const s = this.state;
+    this.setState({ entries: s.entries.filter(x => x.id !== s.edId), editOpen: false });
+    this.toast('Eintrag gelöscht');
+  }
+
+  // ============================ Export ============================
+
+  openExport() {
+    const today = new Date();
+    this.setState(s => ({
+      exportOpen: true,
+      exFrom: s.exFrom || this.iso(this.mondayOf(today)),
+      exTo: s.exTo || this.iso(today),
+    }));
+  }
+  closeExport() { this.setState({ exportOpen: false }); }
+  swallow(e) { if (e && e.stopPropagation) e.stopPropagation(); }
+
+  // Kann das Gerät Dateien über das Teilen-Menü weitergeben? Am iPhone ja,
+  // am Mac im Browser meist nicht. Einmal prüfen und merken.
+  canShare() {
+    if (this._canShare === undefined) {
+      try {
+        this._canShare = !!(navigator.canShare && navigator.canShare({ files: [new File(['x'], 'x.csv', { type: 'text/csv' })] }));
+      } catch (e) { this._canShare = false; }
+    }
+    return this._canShare;
+  }
+
+  exportRows() {
+    const s = this.state;
+    const today = new Date();
+    let from, to;
+    if (s.exRange === 'custom' && (!s.exFrom || !s.exTo)) {
+      from = this.mondayOf(today); to = this.addDays(from, 6);
+    } else if (s.exRange === 'week') {
+      from = this.mondayOf(today); to = this.addDays(from, 6);
+    } else if (s.exRange === 'month') {
+      from = new Date(today.getFullYear(), today.getMonth(), 1);
+      to = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    } else {
+      from = this.parseIso(s.exFrom); to = this.parseIso(s.exTo);
+      if (to < from) { const x = from; from = to; to = x; }
+    }
+    const a = this.iso(from), b = this.iso(to);
+    return s.entries
+      .filter(e => e.date >= a && e.date <= b)
+      .sort((x, y) => x.date === y.date ? x.start.localeCompare(y.start) : x.date.localeCompare(y.date));
+  }
+
+  csv(rows) {
+    let out = 'Datum;Wochentag;Start;Ende;Gearbeitet;Stunden;Pause;Notiz\n';
+    rows.forEach(e => {
+      const wd = DAYS_SHORT[this.parseIso(e.date).getDay()];
+      const dec = (Math.round(e.worked / 36) / 100).toFixed(2).replace('.', ',');
+      out += [this.dmy(e.date), wd, e.start, e.end, this.fmtDur(e.worked), dec, this.fmtDur(e.brk), (e.note || '').replace(/[;\n\r]/g, ' ')].join(';') + '\n';
+    });
+    return out;
+  }
+
+  async downloadCsv() {
+    const rows = this.exportRows();
+    if (!rows.length) { this.toast('Für diesen Zeitraum gibt es nichts'); return; }
+    const text = '﻿' + this.csv(rows);                        // BOM, sonst zerlegt Excel die Umlaute
+    const name = 'zeitwerk-' + rows[0].date + '-bis-' + rows[rows.length-1].date + '.csv';
+    try {
+      const file = new File([text], name, { type: 'text/csv' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Zeitwerk Export' });
+        return;
+      }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    try {
+      const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      this.toast('CSV geladen');
+      return;
+    } catch (e) {}
+    try { await navigator.clipboard.writeText(this.csv(rows)); this.toast('In die Zwischenablage kopiert'); } catch (e) {}
+  }
+
+  // ============================ Darstellung ============================
+
+  darken(hex, f) {
+    const h = String(hex).replace('#', '');
+    if (h.length !== 6) return hex;
+    const d = v => Math.max(0, Math.round(v * (1 - f)));
+    return '#' + [h.slice(0,2), h.slice(2,4), h.slice(4,6)]
+      .map(p => d(parseInt(p, 16)).toString(16).padStart(2, '0')).join('');
+  }
+
+  theme(dark) {
+    const acc = '#4c82f7';
+    return dark ? {
+      bg:'#131519', surface:'#171a20', surface2:'#1f232b', fg:'#eef1f5', muted:'#a3abba',
+      border:'rgba(255,255,255,0.09)', accent:acc, accentSoft:'rgba(76,130,247,0.16)',
+      track:'rgba(255,255,255,0.07)', barLow:'rgba(143,176,255,0.30)', amber:'#f0a63a', danger:'#f06a5a',
+    } : {
+      bg:'#f3f2ee', surface:'#ffffff', surface2:'#eceae4', fg:'#1a1c20', muted:'#5f646d',
+      border:'rgba(0,0,0,0.10)', accent:this.darken(acc, 0.26), accentSoft:'rgba(47,98,230,0.10)',
+      track:'rgba(0,0,0,0.08)', barLow:'rgba(47,98,230,0.24)', amber:'#a86a12', danger:'#c33322',
+    };
+  }
+
+  entriesBetween(from, to) {
+    const a = this.iso(from), b = this.iso(to);
+    return this.state.entries.filter(e => e.date >= a && e.date <= b);
+  }
+  sumWorked(rows) { return rows.reduce((n, e) => n + (e.worked || 0), 0); }
+
+  renderVals() {
+    const s = this.state;
+    const dark = s.themeMode === 'dark' || (s.themeMode === 'auto' && s.systemDark);
+    const t = this.theme(dark);
+    const now = new Date(s.now);
+    const today = this.midnight(now);
+    const todayIso = this.iso(today);
+    const st = this.runStats(s.now);
+    const daySoll = this.daySollSec();
+
+    // ---- Heute ----
+    const todayRows = s.entries.filter(e => e.date === todayIso);
+    const todayDone = this.sumWorked(todayRows);
+    const todayWork = todayDone + st.work;
+    const todayBrk = todayRows.reduce((n, e) => n + (e.brk || 0), 0) + st.brk;
+    const prog = daySoll > 0 ? Math.min(todayWork / daySoll, 1) : 0;
+
+    // ---- laufende Woche ----
+    const monday = this.mondayOf(today);
+    const weekRows = this.entriesBetween(monday, this.addDays(monday, 6));
+    const weekWorked = this.sumWorked(weekRows) + st.work;
+    const weekSollSoFar = this.weekSoll(monday);
+    const weekBal = weekWorked - weekSollSoFar;
+
+    // ---- Verlauf, echte Kalenderwochen ----
+    const byWeek = {}, weekOrder = [];
+    s.entries.forEach(e => {
+      const k = this.weekKey(this.parseIso(e.date));
+      if (!byWeek[k]) { byWeek[k] = []; weekOrder.push(k); }
+      byWeek[k].push(e);
+    });
+    weekOrder.sort().reverse();
+    const thisKey = this.weekKey(today);
+    const lastKey = this.weekKey(this.addDays(monday, -1));
+
+    const weeks = weekOrder.map(key => {
+      const rows = byWeek[key];
+      const mon = this.mondayOf(this.parseIso(rows[0].date));
+      const isThis = key === thisKey;
+      const total = this.sumWorked(rows) + (isThis ? st.work : 0);
+      const bal = total - this.weekSoll(mon);
+      const label = isThis ? 'Diese Woche'
+        : key === lastKey ? 'Letzte Woche'
+        : 'KW ' + this.isoWeek(mon) + ' · ' + this.dmShort(mon) + '–' + this.dmShort(this.addDays(mon, 6));
+
+      const byDay = {}, dayOrder = [];
+      rows.slice().sort((a, b) => b.date.localeCompare(a.date)).forEach(e => {
+        if (!byDay[e.date]) { byDay[e.date] = []; dayOrder.push(e.date); }
+        byDay[e.date].push(e);
+      });
+      return {
+        label,
+        totalStr: this.fmtDur(total),
+        balStr: this.fmtSigned(bal),
+        balColor: bal >= 0 ? t.accent : t.danger,
+        days: dayOrder.map(d => ({
+          day: DAYS_SHORT[this.parseIso(d).getDay()],
+          date: this.dm(d),
+          sessions: byDay[d]
+            .slice()
+            .sort((a, b) => a.start.localeCompare(b.start))
+            .map(e => ({
+              range: e.start + '–' + e.end,
+              sub: (e.note ? e.note + ' · ' : '') + 'Pause ' + this.fmtDur(e.brk),
+              worked: this.fmtDur(e.worked),
+              onEdit: () => this.openEdit(e.id),
+            })),
+        })),
+      };
+    });
+
+    // ---- Übersicht ----
+    const isMonth = s.ov === 'month';
+    let ovWorked, ovSoll, ovLabel, bars, chartTitle, chartLabel, sollRef, sollLegend, scaleMax;
+    // Höhe der Balkenfläche und Abstand ihrer Grundlinie vom oberen Rand
+    // des Diagramms. Muss zur Höhe und zum Innenabstand im Template passen.
+    const H = 104, BASE = 130;
+
+    if (isMonth) {
+      const first = new Date(today.getFullYear(), today.getMonth(), 1);
+      const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      const monthRows = this.entriesBetween(first, last);
+      ovWorked = this.sumWorked(monthRows) + (todayIso >= this.iso(first) && todayIso <= this.iso(last) ? st.work : 0);
+      ovSoll = this.monthSoll(today.getFullYear(), today.getMonth());
+      ovLabel = MONTHS[today.getMonth()] + ' ' + today.getFullYear();
+
+      const vals = [], labels = [];
+      for (let m = this.mondayOf(first); m <= last; m = this.addDays(m, 7)) {
+        const wFrom = m < first ? first : m;
+        const wTo = this.addDays(m, 6) > last ? last : this.addDays(m, 6);
+        let v = this.sumWorked(this.entriesBetween(wFrom, wTo));
+        if (todayIso >= this.iso(wFrom) && todayIso <= this.iso(wTo)) v += st.work;
+        vals.push(v);
+        labels.push('KW ' + this.isoWeek(m));
+      }
+      sollRef = s.weeklyHours * 3600;
+      scaleMax = Math.max(sollRef, ...vals, 1);
+      bars = vals.map((v, i) => ({
+        h: Math.round(v / scaleMax * H),
+        color: v >= sollRef ? t.accent : t.barLow,
+        day: labels[i],
+        valShow: v > 0 ? this.fmtDur(v) : '',
+      }));
+      chartTitle = 'Pro Woche'; chartLabel = 'Kalenderwochen';
+      sollLegend = 'Wochensoll ' + this.fmtDur(sollRef);
+    } else {
+      ovWorked = weekWorked;
+      ovSoll = weekSollSoFar;
+      ovLabel = 'KW ' + this.isoWeek(today) + ' · ' + this.dmShort(monday) + '–' + this.dmShort(this.addDays(monday, 6));
+
+      const vals = [];
+      for (let i = 0; i < 7; i++) {
+        const d = this.addDays(monday, i);
+        const dIso = this.iso(d);
+        let v = this.sumWorked(s.entries.filter(e => e.date === dIso));
+        if (dIso === todayIso) v += st.work;
+        vals.push(v);
+      }
+      sollRef = daySoll;
+      scaleMax = Math.max(sollRef, ...vals, 1);
+      bars = vals.map((v, i) => ({
+        h: Math.round(v / scaleMax * H),
+        color: v >= sollRef ? t.accent : t.barLow,
+        day: ['Mo','Di','Mi','Do','Fr','Sa','So'][i],
+        valShow: v > 0 ? this.fmtDur(v) : '',
+      }));
+      chartTitle = 'Pro Tag'; chartLabel = 'Mo–So';
+      sollLegend = 'Tagessoll ' + this.fmtDur(daySoll);
+    }
+
+    const ovBal = ovWorked - ovSoll;
+    // Soll-Linie liegt auf derselben Skala wie die Balken.
+    const sollLineTop = Math.round(BASE - sollRef / scaleMax * H);
+
+    // ---- Export ----
+    const exRows = this.exportRows();
+    const exSum = this.sumWorked(exRows);
+
+    // ---- kleine Helfer ----
+    const tabActive = dark ? '#8fb0ff' : t.accent;
+    const tab = n => s.tab === n ? tabActive : t.muted;
+    const thBg = m => s.themeMode === m ? t.accentSoft : 'transparent';
+    const thFg = m => s.themeMode === m ? t.accent : t.muted;
+    const exBg = r => s.exRange === r ? t.accent : 'transparent';
+    const exFg = r => s.exRange === r ? '#fff' : t.muted;
+
+    return {
+      t, version: ZW_VERSION,
+      todayLong: now.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' }),
+
+      isHome: s.tab === 'home', isHistory: s.tab === 'history', isOverview: s.tab === 'overview', isSettings: s.tab === 'settings',
+      goHome: () => this.setState({ tab: 'home' }), goHistory: () => this.setState({ tab: 'history' }),
+      goOverview: () => this.setState({ tab: 'overview' }), goSettings: () => this.setState({ tab: 'settings' }),
+      tabHomeC: tab('home'), tabHistC: tab('history'), tabOvC: tab('overview'), tabSetC: tab('settings'),
+
+      isIdle: st.status === 'idle', isRunning: st.status === 'running', isPaused: st.status === 'paused', notIdle: st.status !== 'idle',
+      statusLabel: st.status === 'running' ? 'Läuft' : st.status === 'paused' ? 'Pausiert' : 'Bereit',
+      statusDot: st.status === 'running' ? t.accent : st.status === 'paused' ? t.amber : t.muted,
+      statusPulse: st.status === 'running' ? 'animation:zwPulse 1.6s ease-in-out infinite' : '',
+      timeStr: this.fmtClock(st.work),
+      ringOffset: (653.45 * (1 - prog)).toFixed(1),
+      daySollStr: this.fmtDur(daySoll),
+      startedAtStr: s.run ? this.hhmm(s.run.startedAt) : '',
+      start: () => this.start(), pauseToggle: () => this.pauseToggle(), stop: () => this.stop(),
+      note: s.run ? (s.run.note || '') : '', onNote: e => this.onNote(e),
+
+      todayWorkedStr: this.fmtDur(todayWork), todayBreakStr: this.fmtDur(todayBrk),
+      restStr: this.fmtDur(Math.max(0, daySoll - todayWork)),
+      weekBalanceStr: this.fmtSigned(weekBal), balanceColor: weekBal >= 0 ? t.accent : t.danger,
+      weekSollSoFarStr: this.fmtDur(weekSollSoFar),
+
+      hasTodayEntries: todayRows.length > 0,
+      todayEntries: todayRows
+        .slice()
+        .sort((a, b) => a.start.localeCompare(b.start))
+        .map(e => ({
+          range: e.start + '–' + e.end,
+          sub: (e.note ? e.note + ' · ' : '') + 'Pause ' + this.fmtDur(e.brk),
+          worked: this.fmtDur(e.worked),
+          onEdit: () => this.openEdit(e.id),
+        })),
+
+      weeks, historyEmpty: weeks.length === 0,
+      openNew: () => this.openNew(),
+
+      setWeek: () => this.setState({ ov: 'week' }), setMonth: () => this.setState({ ov: 'month' }),
+      ovWeekBg: isMonth ? 'transparent' : t.accent, ovWeekFg: isMonth ? t.muted : '#fff',
+      ovMonthBg: isMonth ? t.accent : 'transparent', ovMonthFg: isMonth ? '#fff' : t.muted,
+      ovBalanceStr: this.fmtSigned(ovBal), ovBalColor: ovBal >= 0 ? t.accent : t.danger,
+      ovRangeLabel: ovLabel, ovTotalStr: this.fmtDur(ovWorked), ovSollStr: this.fmtDur(ovSoll),
+      ovProgPct: ovSoll > 0 ? Math.min(100, Math.round(ovWorked / ovSoll * 100)) : 0,
+      ovChartTitle: chartTitle, ovChartLabel: chartLabel, bars,
+      sollLineTop, sollChipTop: sollLineTop - 6, barLowColor: t.barLow, sollLegend,
+
+      setLight: () => this.setState({ themeMode: 'light' }), setDark: () => this.setState({ themeMode: 'dark' }), setAuto: () => this.setState({ themeMode: 'auto' }),
+      thLightBg: thBg('light'), thLightFg: thFg('light'), thDarkBg: thBg('dark'), thDarkFg: thFg('dark'), thAutoBg: thBg('auto'), thAutoFg: thFg('auto'),
+      weeklyHoursStr: this.fmtHours(s.weeklyHours), incHours: () => this.incHours(), decHours: () => this.decHours(),
+      reminderHoursStr: this.fmtDur(s.reminderMins * 60) + ' h', incRem: () => this.incRem(), decRem: () => this.decRem(),
+      entryCountStr: s.entries.length === 1 ? '1 Eintrag' : s.entries.length + ' Einträge',
+      askWipe: () => this.askWipe(), cancelWipe: () => this.cancelWipe(), doWipe: () => this.doWipe(), wipeOpen: s.wipeOpen,
+
+      reminderOpen: s.reminderOpen, sinceBreakStr: this.fmtDur(st.since) + ' h',
+      takeBreak: () => this.takeBreak(), dismissReminder: () => this.dismissReminder(),
+
+      exportOpen: s.exportOpen, openExport: () => this.openExport(), closeExport: () => this.closeExport(),
+      swallow: e => this.swallow(e),
+      exWeek: () => this.setState({ exRange: 'week' }), exMonth: () => this.setState({ exRange: 'month' }), exCustom: () => this.setState({ exRange: 'custom' }),
+      exWeekBg: exBg('week'), exWeekFg: exFg('week'), exMonthBg: exBg('month'), exMonthFg: exFg('month'), exCustomBg: exBg('custom'), exCustomFg: exFg('custom'),
+      exIsCustom: s.exRange === 'custom', exFrom: s.exFrom, exTo: s.exTo,
+      onExFrom: e => { const v = e.target.value; this.setState({ exFrom: v }); },
+      onExTo: e => { const v = e.target.value; this.setState({ exTo: v }); },
+      exCountStr: exRows.length === 1 ? '1 Eintrag' : exRows.length + ' Einträge',
+      exSumStr: this.fmtDur(exSum) + ' h',
+      csvText: exRows.length ? this.csv(exRows) : 'Für diesen Zeitraum gibt es keine Einträge.',
+      exportBtnLabel: this.canShare() ? 'CSV teilen' : 'CSV herunterladen',
+      downloadCsv: () => this.downloadCsv(),
+
+      editOpen: s.editOpen, closeEdit: () => this.closeEdit(), saveEdit: () => this.saveEdit(), deleteEntry: () => this.deleteEntry(),
+      edIsExisting: !!s.edId, editTitle: s.edId ? 'Eintrag bearbeiten' : 'Eintrag hinzufügen',
+      edDate: s.edDate, edStart: s.edStart, edEnd: s.edEnd, edNote: s.edNote,
+      edBrkStr: this.fmtDur(s.edBrkMin * 60), edWorkedStr: this.fmtDur(this.editWorkedSec()),
+      onEdDate: e => { const v = e.target.value; this.setState({ edDate: v }); },
+      onEdStart: e => { const v = e.target.value; this.setState({ edStart: v }); },
+      onEdEnd: e => { const v = e.target.value; this.setState({ edEnd: v }); },
+      onEdNote: e => { const v = e.target.value; this.setState({ edNote: v }); },
+      incEdBrk: () => this.setState(x => ({ edBrkMin: Math.min(600, x.edBrkMin + 5) })),
+      decEdBrk: () => this.setState(x => ({ edBrkMin: Math.max(0, x.edBrkMin - 5) })),
+
+      hasToast: !!s.toast, toast: s.toast,
+    };
+  }
+}
+</script>
+</body>
+</html>
