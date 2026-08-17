@@ -62,14 +62,23 @@ if ('serviceWorker' in navigator) {
           <svg viewBox="0 0 240 240" style="width:100%;height:100%;transform:rotate(-90deg)">
             <circle cx="120" cy="120" r="104" fill="none" stroke="var(--track,rgba(255,255,255,.07))" stroke-width="15"/>
             <circle cx="120" cy="120" r="104" fill="none" stroke="var(--accent,#4c82f7)" stroke-width="15" stroke-linecap="round" stroke-dasharray="653.45" stroke-dashoffset="{{ ringOffset }}" style="transition:stroke-dashoffset .5s linear"/>
+            <circle cx="120" cy="120" r="84" fill="none" stroke="{{ brkTrackColor }}" stroke-width="9"/>
+            <circle cx="120" cy="120" r="84" fill="none" stroke="{{ brkRingColor }}" stroke-width="9" stroke-linecap="round" stroke-dasharray="527.79" stroke-dashoffset="{{ brkRingOffset }}" style="transition:stroke-dashoffset .5s linear"/>
           </svg>
-          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0 34px;text-align:center">
             <div style="display:flex;align-items:center;gap:7px">
               <span style="width:8px;height:8px;border-radius:50%;background:{{ statusDot }};{{ statusPulse }}"></span>
               <span style="font:700 12px var(--f);letter-spacing:.5px;text-transform:uppercase;color:var(--muted,#8b93a1)">{{ statusLabel }}</span>
             </div>
-            <div class="num" style="font:700 44px var(--f);color:var(--fg,#eef1f5)">{{ timeStr }}</div>
-            <div style="font:12px var(--f);color:var(--muted,#8b93a1)">von {{ daySollStr }} Tagessoll</div>
+            <sc-if value="{{ isPaused }}" hint-placeholder-val="{{ false }}">
+              <div class="num" style="font:700 40px var(--f);color:var(--amber,#f0a63a)">{{ brkTimeStr }}</div>
+              <div style="font:12px var(--f);color:var(--muted,#8b93a1)">{{ brkGoalHint }}</div>
+              <div class="num" style="font:12px var(--f);color:var(--muted,#8b93a1)">Arbeitszeit {{ timeStr }}</div>
+            </sc-if>
+            <sc-if value="{{ notPaused }}" hint-placeholder-val="{{ true }}">
+              <div class="num" style="font:700 44px var(--f);color:var(--fg,#eef1f5)">{{ timeStr }}</div>
+              <div style="font:12px var(--f);color:var(--muted,#8b93a1)">von {{ daySollStr }} Tagessoll</div>
+            </sc-if>
           </div>
         </div>
       </div>
@@ -85,7 +94,7 @@ if ('serviceWorker' in navigator) {
       </sc-if>
       <sc-if value="{{ isPaused }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;gap:12px">
-          <button onClick="{{ pauseToggle }}" style="flex:1;height:56px;border:none;border-radius:18px;background:var(--accent,#4c82f7);color:#fff;font:700 17px var(--f);cursor:pointer">Fortsetzen</button>
+          <button onClick="{{ pauseToggle }}" style="flex:1;height:56px;border:none;border-radius:18px;background:var(--accent,#4c82f7);color:#fff;font:700 17px var(--f);cursor:pointer">Weiter</button>
           <button onClick="{{ stop }}" style="flex:1;height:56px;border:none;border-radius:18px;background:var(--danger,#f06a5a);color:#fff;font:700 17px var(--f);cursor:pointer">Stopp</button>
         </div>
       </sc-if>
@@ -97,15 +106,15 @@ if ('serviceWorker' in navigator) {
 
       <div style="display:flex;gap:10px;margin-top:20px">
         <div style="flex:1;background:var(--surface,#171a20);border:1px solid var(--border);border-radius:16px;padding:13px">
-          <div style="font:11px var(--f);color:var(--muted,#8b93a1)">Gearbeitet</div>
+          <div style="font:11px var(--f);color:var(--muted,#8b93a1)">Arbeitszeit</div>
           <div class="num" style="font:700 18px var(--f);margin-top:3px">{{ todayWorkedStr }}</div>
         </div>
         <div style="flex:1;background:var(--surface,#171a20);border:1px solid var(--border);border-radius:16px;padding:13px">
-          <div style="font:11px var(--f);color:var(--muted,#8b93a1)">Pause</div>
-          <div class="num" style="font:700 18px var(--f);margin-top:3px">{{ todayBreakStr }}</div>
+          <div style="font:11px var(--f);color:var(--muted,#8b93a1)">Pausenzeit</div>
+          <div class="num" style="font:700 18px var(--f);margin-top:3px;color:{{ todayBreakColor }}">{{ todayBreakStr }}<span style="font:600 11px var(--f);color:var(--muted,#8b93a1)">{{ brkGoalSuffix }}</span></div>
         </div>
         <div style="flex:1;background:var(--surface,#171a20);border:1px solid var(--border);border-radius:16px;padding:13px">
-          <div style="font:11px var(--f);color:var(--muted,#8b93a1)">Rest bis Soll</div>
+          <div style="font:11px var(--f);color:var(--muted,#8b93a1)">{{ restLabel }}</div>
           <div class="num" style="font:700 18px var(--f);margin-top:3px">{{ restStr }}</div>
         </div>
       </div>
@@ -113,7 +122,7 @@ if ('serviceWorker' in navigator) {
       <div style="margin-top:12px;background:var(--accentSoft,rgba(76,130,247,.16));border:1px solid var(--border);border-radius:16px;padding:15px;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="min-width:0">
           <div style="font:12px var(--f);color:var(--muted,#8b93a1)">Saldo diese Woche</div>
-          <div style="font:600 13px var(--f);margin-top:2px;color:var(--fg,#eef1f5)">Soll bis heute {{ weekSollSoFarStr }}</div>
+          <div style="font:600 13px var(--f);margin-top:2px;color:var(--fg,#eef1f5)">{{ weekSollLabel }} {{ weekSollSoFarStr }}</div>
         </div>
         <div class="num" style="font:700 26px var(--f);color:{{ balanceColor }};flex-shrink:0">{{ weekBalanceStr }}</div>
       </div>
@@ -206,8 +215,8 @@ if ('serviceWorker' in navigator) {
         <div class="num" style="font:700 52px var(--f);line-height:1.04;margin-top:6px;color:{{ ovBalColor }}">{{ ovBalanceStr }}</div>
         <div style="margin-top:18px">
           <div style="display:flex;justify-content:space-between;font:12px var(--f);color:var(--muted,#8b93a1);margin-bottom:7px">
-            <span>Gearbeitet <b class="num" style="color:var(--fg,#eef1f5)">{{ ovTotalStr }}</b></span>
-            <span>Soll bis heute <b class="num" style="color:var(--fg,#eef1f5)">{{ ovSollStr }}</b></span>
+            <span>Arbeitszeit <b class="num" style="color:var(--fg,#eef1f5)">{{ ovTotalStr }}</b></span>
+            <span>{{ ovSollLabel }} <b class="num" style="color:var(--fg,#eef1f5)">{{ ovSollStr }}</b></span>
           </div>
           <div style="height:9px;border-radius:5px;background:var(--track,rgba(255,255,255,.07));overflow:hidden">
             <div style="height:100%;width:{{ ovProgPct }}%;border-radius:5px;background:var(--accent,#4c82f7);transition:width .5s ease"></div>
@@ -260,6 +269,22 @@ if ('serviceWorker' in navigator) {
             <button onClick="{{ decHours }}" style="width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 18px var(--f);cursor:pointer">–</button>
             <span class="num" style="font:700 15px var(--f);min-width:54px;text-align:center">{{ weeklyHoursStr }}</span>
             <button onClick="{{ incHours }}" style="width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 18px var(--f);cursor:pointer">+</button>
+          </div>
+        </div>
+        <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+          <div style="font:15px var(--f)">Saldo rechnen gegen</div>
+          <div style="font:12px/1.45 var(--f);color:var(--muted,#8b93a1);margin-top:1px">{{ basisHint }}</div>
+          <div style="display:flex;gap:6px;background:var(--surface2,#1f232b);border-radius:11px;padding:4px;margin-top:11px">
+            <button onClick="{{ setBasisWeek }}" style="flex:1;height:34px;border:none;border-radius:8px;font:700 13px var(--f);cursor:pointer;background:{{ basisWeekBg }};color:{{ basisWeekFg }}">Volles Soll</button>
+            <button onClick="{{ setBasisToday }}" style="flex:1;height:34px;border:none;border-radius:8px;font:700 13px var(--f);cursor:pointer;background:{{ basisTodayBg }};color:{{ basisTodayFg }}">Soll bis heute</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);gap:10px">
+          <div style="flex:1;min-width:0"><div style="font:15px var(--f)">Pausenziel</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">Zweiter Kreis füllt sich während der Pausenzeit bis zu dieser Dauer</div></div>
+          <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+            <button onClick="{{ decBrkGoal }}" style="width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 18px var(--f);cursor:pointer">–</button>
+            <span class="num" style="font:700 15px var(--f);min-width:54px;text-align:center">{{ brkGoalSetStr }}</span>
+            <button onClick="{{ incBrkGoal }}" style="width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 18px var(--f);cursor:pointer">+</button>
           </div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;gap:10px">
@@ -383,7 +408,7 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface,#171a20);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:12px;gap:10px">
-        <div style="min-width:0"><div style="font:14px var(--f)">Pause</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">Gearbeitet {{ edWorkedStr }}</div></div>
+        <div style="min-width:0"><div style="font:14px var(--f)">Pausenzeit</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">Arbeitszeit {{ edWorkedStr }}</div></div>
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
           <button onClick="{{ decEdBrk }}" style="width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 18px var(--f);cursor:pointer">–</button>
           <span class="num" style="font:700 15px var(--f);min-width:52px;text-align:center">{{ edBrkStr }}</span>
@@ -427,9 +452,11 @@ if ('serviceWorker' in navigator) {
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 const ZW_KEY = 'zeitwerk.v1';
-const ZW_VERSION = '1.0';
+const ZW_VERSION = '1.1';
 const DAYS_SHORT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+// Ein Monat wird als 4,33 Wochen gerechnet, also 52 Wochen auf 12 Monate.
+const MONTH_WEEKS = 4.33;
 
 class Component extends DCLogic {
   state = {
@@ -437,6 +464,8 @@ class Component extends DCLogic {
     themeMode: 'auto', systemDark: true,
     entries: [],
     weeklyHours: 38.5,
+    sollBasis: 'week',
+    breakGoalMin: 30,
     reminderMins: 360,
     run: null,
     now: Date.now(),
@@ -506,6 +535,8 @@ class Component extends DCLogic {
       const patch = {};
       if (Array.isArray(d.entries)) patch.entries = d.entries;
       if (typeof d.weeklyHours === 'number') patch.weeklyHours = d.weeklyHours;
+      if (d.sollBasis === 'week' || d.sollBasis === 'today') patch.sollBasis = d.sollBasis;
+      if (typeof d.breakGoalMin === 'number') patch.breakGoalMin = d.breakGoalMin;
       if (typeof d.reminderMins === 'number') patch.reminderMins = d.reminderMins;
       if (typeof d.themeMode === 'string') patch.themeMode = d.themeMode;
       if (d.run && typeof d.run.startedAt === 'number') {
@@ -521,6 +552,8 @@ class Component extends DCLogic {
       v: 1,
       entries: s.entries,
       weeklyHours: s.weeklyHours,
+      sollBasis: s.sollBasis,
+      breakGoalMin: s.breakGoalMin,
       reminderMins: s.reminderMins,
       themeMode: s.themeMode,
       run: s.run,
@@ -572,36 +605,47 @@ class Component extends DCLogic {
   }
 
   daySollSec() { return this.state.weeklyHours * 3600 / 5; }
+  weekSollFull() { return this.state.weeklyHours * 3600; }
+  monthSollFull() { return this.state.weeklyHours * MONTH_WEEKS * 3600; }
+  isFullBasis() { return this.state.sollBasis !== 'today'; }
 
-  // Soll einer Woche. Läuft die Woche noch, zählt nur bis heute.
+  // Soll einer Woche. Auf Wochenbasis immer das volle Wochensoll, auf
+  // Tagesbasis nur der bereits vergangene Anteil.
   weekSoll(monday) {
+    const full = this.weekSollFull();
     const today = this.midnight(new Date());
     const sunday = this.addDays(monday, 6);
-    if (sunday < today) return this.daySollSec() * 5;
     if (monday > today) return 0;
+    if (sunday < today) return full;
+    if (this.isFullBasis()) return full;
     return this.daySollSec() * this.workdaysBetween(monday, today);
   }
 
+  // Soll eines Monats, immer aus den Wochenstunden mal 4,33 Wochen.
+  // Auf Tagesbasis anteilig nach den bereits vergangenen Arbeitstagen.
   monthSoll(year, month) {
+    const full = this.monthSollFull();
     const today = this.midnight(new Date());
     const first = new Date(year, month, 1);
     const last = new Date(year, month + 1, 0);
     if (first > today) return 0;
-    const end = last < today ? last : today;
-    return this.daySollSec() * this.workdaysBetween(first, end);
+    if (last < today || this.isFullBasis()) return full;
+    const total = this.workdaysBetween(first, last);
+    if (total <= 0) return 0;
+    return full * this.workdaysBetween(first, today) / total;
   }
 
   // ============================ Laufende Erfassung ============================
 
   runStats(now) {
     const r = this.state.run;
-    if (!r) return { status: 'idle', work: 0, brk: 0, since: 0 };
+    if (!r) return { status: 'idle', work: 0, brk: 0, since: 0, curBrk: 0 };
     now = now || this.state.now;
-    let brkMs = 0, lastResume = r.startedAt, open = false;
+    let brkMs = 0, lastResume = r.startedAt, open = false, openFrom = 0;
     (r.pauses || []).forEach(p => {
       const to = p.to == null ? now : p.to;
       brkMs += Math.max(0, to - p.from);
-      if (p.to == null) open = true;
+      if (p.to == null) { open = true; openFrom = p.from; }
       else if (p.to > lastResume) lastResume = p.to;
     });
     const workMs = Math.max(0, now - r.startedAt - brkMs);
@@ -610,6 +654,7 @@ class Component extends DCLogic {
       work: workMs / 1000,
       brk: brkMs / 1000,
       since: open ? 0 : Math.max(0, now - lastResume) / 1000,
+      curBrk: open ? Math.max(0, now - openFrom) / 1000 : 0,
     };
   }
 
@@ -683,6 +728,8 @@ class Component extends DCLogic {
   decHours() { this.setState(s => ({ weeklyHours: Math.max(1, Math.round((s.weeklyHours - 0.5) * 2) / 2) })); }
   incRem() { this.setState(s => ({ reminderMins: Math.min(720, s.reminderMins + 30) })); }
   decRem() { this.setState(s => ({ reminderMins: Math.max(30, s.reminderMins - 30) })); }
+  incBrkGoal() { this.setState(s => ({ breakGoalMin: Math.min(180, s.breakGoalMin + 5) })); }
+  decBrkGoal() { this.setState(s => ({ breakGoalMin: Math.max(0, s.breakGoalMin - 5) })); }
 
   askWipe() { this.setState({ wipeOpen: true }); }
   cancelWipe() { this.setState({ wipeOpen: false }); }
@@ -792,7 +839,7 @@ class Component extends DCLogic {
   }
 
   csv(rows) {
-    let out = 'Datum;Wochentag;Start;Ende;Gearbeitet;Stunden;Pause;Notiz\n';
+    let out = 'Datum;Wochentag;Start;Ende;Arbeitszeit;Stunden;Pausenzeit;Notiz\n';
     rows.forEach(e => {
       const wd = DAYS_SHORT[this.parseIso(e.date).getDay()];
       const dec = (Math.round(e.worked / 36) / 100).toFixed(2).replace('.', ',');
@@ -863,6 +910,7 @@ class Component extends DCLogic {
     const todayIso = this.iso(today);
     const st = this.runStats(s.now);
     const daySoll = this.daySollSec();
+    const fullBasis = this.isFullBasis();
 
     // ---- Heute ----
     const todayRows = s.entries.filter(e => e.date === todayIso);
@@ -870,6 +918,13 @@ class Component extends DCLogic {
     const todayWork = todayDone + st.work;
     const todayBrk = todayRows.reduce((n, e) => n + (e.brk || 0), 0) + st.brk;
     const prog = daySoll > 0 ? Math.min(todayWork / daySoll, 1) : 0;
+
+    // ---- Pause, zweiter Kreis im Arbeitszeitkreis ----
+    // Gemessen wird die gesamte Pause der laufenden Erfassung, nicht nur die
+    // gerade offene. Wer zweimal pausiert, füllt denselben Kreis weiter.
+    const brkGoal = s.breakGoalMin * 60;
+    const brkReached = brkGoal > 0 && st.brk >= brkGoal;
+    const brkProg = brkGoal > 0 ? Math.min(st.brk / brkGoal, 1) : 1;
 
     // ---- laufende Woche ----
     const monday = this.mondayOf(today);
@@ -917,7 +972,7 @@ class Component extends DCLogic {
             .sort((a, b) => a.start.localeCompare(b.start))
             .map(e => ({
               range: e.start + '–' + e.end,
-              sub: (e.note ? e.note + ' · ' : '') + 'Pause ' + this.fmtDur(e.brk),
+              sub: (e.note ? e.note + ' · ' : '') + 'Pausenzeit ' + this.fmtDur(e.brk),
               worked: this.fmtDur(e.worked),
               onEdit: () => this.openEdit(e.id),
             })),
@@ -1009,20 +1064,34 @@ class Component extends DCLogic {
       goOverview: () => this.setState({ tab: 'overview' }), goSettings: () => this.setState({ tab: 'settings' }),
       tabHomeC: tab('home'), tabHistC: tab('history'), tabOvC: tab('overview'), tabSetC: tab('settings'),
 
-      isIdle: st.status === 'idle', isRunning: st.status === 'running', isPaused: st.status === 'paused', notIdle: st.status !== 'idle',
-      statusLabel: st.status === 'running' ? 'Läuft' : st.status === 'paused' ? 'Pausiert' : 'Bereit',
+      isIdle: st.status === 'idle', isRunning: st.status === 'running', isPaused: st.status === 'paused',
+      notIdle: st.status !== 'idle', notPaused: st.status !== 'paused',
+      statusLabel: st.status === 'running' ? 'Arbeitszeit' : st.status === 'paused' ? 'Pausenzeit' : 'Bereit',
       statusDot: st.status === 'running' ? t.accent : st.status === 'paused' ? t.amber : t.muted,
       statusPulse: st.status === 'running' ? 'animation:zwPulse 1.6s ease-in-out infinite' : '',
       timeStr: this.fmtClock(st.work),
       ringOffset: (653.45 * (1 - prog)).toFixed(1),
       daySollStr: this.fmtDur(daySoll),
+
+      brkTimeStr: this.fmtClock(st.brk),
+      brkRingOffset: (527.79 * (1 - brkProg)).toFixed(1),
+      brkRingColor: st.status === 'paused' && brkGoal > 0 ? t.amber : 'transparent',
+      brkTrackColor: st.status === 'paused' && brkGoal > 0 ? t.track : 'transparent',
+      brkGoalSuffix: brkGoal > 0 ? ' / ' + this.fmtDur(brkGoal) : '',
+      brkGoalHint: brkGoal <= 0 ? 'Kein Pausenziel gesetzt'
+        : brkReached ? 'Pausenziel ' + this.fmtDur(brkGoal) + ' erreicht'
+        : 'Ziel ' + this.fmtDur(brkGoal) + ' · noch ' + this.fmtDur(brkGoal - st.brk),
+      todayBreakColor: brkGoal > 0 && todayBrk >= brkGoal ? t.accent : t.fg,
+
       startedAtStr: s.run ? this.hhmm(s.run.startedAt) : '',
       start: () => this.start(), pauseToggle: () => this.pauseToggle(), stop: () => this.stop(),
       note: s.run ? (s.run.note || '') : '', onNote: e => this.onNote(e),
 
       todayWorkedStr: this.fmtDur(todayWork), todayBreakStr: this.fmtDur(todayBrk),
-      restStr: this.fmtDur(Math.max(0, daySoll - todayWork)),
+      restLabel: fullBasis ? 'Rest Woche' : 'Rest bis Soll',
+      restStr: this.fmtDur(Math.max(0, fullBasis ? weekSollSoFar - weekWorked : daySoll - todayWork)),
       weekBalanceStr: this.fmtSigned(weekBal), balanceColor: weekBal >= 0 ? t.accent : t.danger,
+      weekSollLabel: fullBasis ? 'Wochensoll' : 'Soll bis heute',
       weekSollSoFarStr: this.fmtDur(weekSollSoFar),
 
       hasTodayEntries: todayRows.length > 0,
@@ -1031,7 +1100,7 @@ class Component extends DCLogic {
         .sort((a, b) => a.start.localeCompare(b.start))
         .map(e => ({
           range: e.start + '–' + e.end,
-          sub: (e.note ? e.note + ' · ' : '') + 'Pause ' + this.fmtDur(e.brk),
+          sub: (e.note ? e.note + ' · ' : '') + 'Pausenzeit ' + this.fmtDur(e.brk),
           worked: this.fmtDur(e.worked),
           onEdit: () => this.openEdit(e.id),
         })),
@@ -1044,6 +1113,7 @@ class Component extends DCLogic {
       ovMonthBg: isMonth ? t.accent : 'transparent', ovMonthFg: isMonth ? '#fff' : t.muted,
       ovBalanceStr: this.fmtSigned(ovBal), ovBalColor: ovBal >= 0 ? t.accent : t.danger,
       ovRangeLabel: ovLabel, ovTotalStr: this.fmtDur(ovWorked), ovSollStr: this.fmtDur(ovSoll),
+      ovSollLabel: fullBasis ? (isMonth ? 'Monatssoll' : 'Wochensoll') : 'Soll bis heute',
       ovProgPct: ovSoll > 0 ? Math.min(100, Math.round(ovWorked / ovSoll * 100)) : 0,
       ovChartTitle: chartTitle, ovChartLabel: chartLabel, bars,
       sollLineTop, sollChipTop: sollLineTop - 6, barLowColor: t.barLow, sollLegend,
@@ -1052,6 +1122,14 @@ class Component extends DCLogic {
       thLightBg: thBg('light'), thLightFg: thFg('light'), thDarkBg: thBg('dark'), thDarkFg: thFg('dark'), thAutoBg: thBg('auto'), thAutoFg: thFg('auto'),
       weeklyHoursStr: this.fmtHours(s.weeklyHours), incHours: () => this.incHours(), decHours: () => this.decHours(),
       reminderHoursStr: this.fmtDur(s.reminderMins * 60) + ' h', incRem: () => this.incRem(), decRem: () => this.decRem(),
+
+      setBasisWeek: () => this.setState({ sollBasis: 'week' }), setBasisToday: () => this.setState({ sollBasis: 'today' }),
+      basisWeekBg: fullBasis ? t.accent : 'transparent', basisWeekFg: fullBasis ? '#fff' : t.muted,
+      basisTodayBg: fullBasis ? 'transparent' : t.accent, basisTodayFg: fullBasis ? t.muted : '#fff',
+      basisHint: fullBasis
+        ? 'Volles Wochensoll ' + this.fmtDur(this.weekSollFull()) + ', Monat ' + this.fmtDur(this.monthSollFull()) + ' aus 4,33 Wochen'
+        : 'Tagessoll ' + this.fmtDur(daySoll) + ' mal die bereits vergangenen Arbeitstage',
+      brkGoalSetStr: this.fmtDur(brkGoal) + ' h', incBrkGoal: () => this.incBrkGoal(), decBrkGoal: () => this.decBrkGoal(),
       entryCountStr: s.entries.length === 1 ? '1 Eintrag' : s.entries.length + ' Einträge',
       askWipe: () => this.askWipe(), cancelWipe: () => this.cancelWipe(), doWipe: () => this.doWipe(), wipeOpen: s.wipeOpen,
 

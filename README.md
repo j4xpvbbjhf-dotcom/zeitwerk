@@ -8,8 +8,12 @@ Die App ist die lauffähige Umsetzung des Claude Designs `Zeitwerk.dc.html`.
 ## Was die App kann
 
 - Tab **Heute** mit Fortschrittsring auf das Tagessoll, Start, Pause und Stopp
-- Notiz zur laufenden Arbeitszeit, darunter Gearbeitet, Pause, Rest bis Soll
-- Saldo der laufenden Woche, gerechnet gegen das Soll bis heute
+- Zweiter Kreis im Arbeitszeitkreis, sobald du auf Pause drückst. Er füllt
+  sich bis zum eingestellten Pausenziel und verschwindet beim Weiterarbeiten
+  wieder, die Anzeige schaltet dann zurück auf die Arbeitszeit
+- Notiz zur laufenden Arbeitszeit, darunter Arbeitszeit, Pausenzeit und Rest
+- Saldo der laufenden Woche, wahlweise gegen das volle Wochensoll oder gegen
+  das Soll bis heute
 - Bereits abgeschlossene Zeiten des Tages direkt antippbar zum Ändern
 - Tab **Verlauf** nach echten Kalenderwochen gruppiert, jede Woche mit Summe
   und Saldo, jeder Eintrag antippbar
@@ -17,7 +21,8 @@ Die App ist die lauffähige Umsetzung des Claude Designs `Zeitwerk.dc.html`.
 - Tab **Übersicht** mit Woche und Monat, Saldo, Fortschrittsbalken und
   Säulendiagramm mit Soll-Linie
 - Tab **Einstellungen** mit Hell, Dunkel, Automatisch, Wochenstunden in
-  halben Stunden, Pausen-Erinnerung, CSV Export und Alles löschen
+  halben Stunden, Bezug des Saldos, Pausenziel, Pausen-Erinnerung, CSV Export
+  und Alles löschen
 - Pausen-Erinnerung als Dialog, prüft auch rückwirkend beim Öffnen
 
 ## Wie die Zeitmessung funktioniert
@@ -32,21 +37,45 @@ Wird beim Stopp weniger als eine Minute gemessen, wird nichts gespeichert.
 
 ## Wie der Saldo gerechnet wird
 
-Das Tagessoll ist die eingestellte Wochenstundenzahl geteilt durch fünf,
-Arbeitstage sind fest Montag bis Freitag.
+Grundlage sind immer die eingestellten Wochenstunden. Ein Monat wird als 4,33
+Wochen gerechnet, also 52 Wochen auf 12 Monate. Bei 38,5 Wochenstunden sind
+das 166:42 Stunden im Monat.
 
-Das Wochensoll wächst mit jedem vergangenen Arbeitstag inklusive dem heutigen.
-Am Mittwochabend steht also drei Tagessoll gegen deine bisherige Arbeitszeit,
-nicht das volle Wochensoll. Für abgeschlossene Wochen zählt das volle Soll.
-Beim Monat gilt dasselbe, dort zählen alle Arbeitstage des Monats bis heute.
+In den Einstellungen legst du unter „Saldo rechnen gegen“ fest, wogegen
+gerechnet wird.
 
-Samstag und Sonntag haben kein Soll. Wer an diesen Tagen arbeitet, sammelt
-die Zeit voll als Plus.
+**Volles Soll** ist die Voreinstellung. Der Saldo steht gegen das volle
+Wochensoll beziehungsweise gegen das volle Monatssoll. Am Montagmorgen beginnt
+die Woche also mit dem vollen Minus und arbeitet sich über die Woche auf null.
+
+**Soll bis heute** rechnet stattdessen anteilig. Das Tagessoll ist die Wochenstunden
+geteilt durch fünf und zählt für jeden bereits vergangenen Arbeitstag inklusive
+dem heutigen. Am Mittwochabend stehen also drei Tagessoll gegen deine bisherige
+Arbeitszeit. Der Monat wird nach demselben Anteil aus den 4,33 Wochen gerechnet.
+Abgeschlossene Wochen und Monate zählen in beiden Fällen voll.
+
+Arbeitstage sind fest Montag bis Freitag. Samstag und Sonntag haben kein Soll.
+Wer an diesen Tagen arbeitet, sammelt die Zeit voll als Plus.
+
+## Pausenziel
+
+Drückst du auf Pause, startet im Arbeitszeitkreis ein zweiter, gelber Kreis.
+Er zeigt die gesamte Pause der laufenden Erfassung und füllt sich bis zum
+Pausenziel, voreingestellt 30 Minuten. Pausierst du ein zweites Mal, läuft
+derselbe Kreis weiter. Ist das Ziel erreicht, steht das im Kreis.
+
+Beim Weiterarbeiten schaltet die Anzeige zurück auf die Arbeitszeit, der zweite
+Kreis verschwindet. Wie viel Pausenzeit du heute schon hast, steht weiterhin in
+der Kachel „Pausenzeit“, dort auch das Ziel. Das Pausenziel ist in den Einstellungen in
+Fünferschritten einstellbar und mit 0 Minuten abschaltbar.
+
+Getrennt davon gibt es die Pausen-Erinnerung, die sich meldet, wenn du zu lange
+ohne Unterbrechung arbeitest.
 
 ## Export
 
-CSV mit Semikolon und Spalten Datum, Wochentag, Start, Ende, Gearbeitet,
-Stunden dezimal, Pause und Notiz. Der Zeitraum lässt sich auf Woche, Monat
+CSV mit Semikolon und Spalten Datum, Wochentag, Start, Ende, Arbeitszeit,
+Stunden dezimal, Pausenzeit und Notiz. Der Zeitraum lässt sich auf Woche, Monat
 oder ein eigenes Von und Bis stellen.
 
 Am iPhone geht der Export über das Teilen-Menü, am Mac als Download. Die Datei
