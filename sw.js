@@ -1,25 +1,27 @@
 // Service Worker — macht die App offline-fähig und installierbar.
 // Eigene Dateien: network-first, damit Updates ankommen, Cache als Rückfall.
-// CDN (React): cache-first, die URLs sind versioniert und ändern sich nie.
+// CDN: cache-first, die URLs sind versioniert und ändern sich nie. React
+// liegt seit 1.5 im Ordner vendor und ist damit eine eigene Datei, das CDN
+// wird dafür nicht mehr gebraucht.
 
-const CACHE = 'zeitwerk-v1';
+const CACHE = 'zeitwerk-v2';
 
 const SHELL = [
   './',
   './index.html',
   './support.js',
+  './vendor/react.production.min.js',
+  './vendor/react-dom.production.min.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './icons/icon-180.png'
+  './icons/icon-180.png',
+  './icons/icon-maskable-512.png'
 ];
 
-// Ohne React startet die App nicht. Mit im Install-Cache, damit sie auch
-// ohne Empfang aufgeht.
-const VENDOR = [
-  'https://unpkg.com/react@18.3.1/umd/react.production.min.js',
-  'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js'
-];
+// Bleibt für Schriften und alles, was doch einmal von außen kommt. React
+// steht oben im SHELL und wird hier nicht mehr gebraucht.
+const VENDOR = [];
 
 const isVendor = (url) =>
   url.hostname === 'unpkg.com' ||

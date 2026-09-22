@@ -126,9 +126,17 @@ herausgegangenen Export, ein abgebrochenes Teilen zählt nicht.
 |-------|-------|
 | `index.html` | gesamte App, Aufbau und Logik |
 | `support.js` | Laufzeit des Claude Design Formats, lädt React |
+| `vendor/` | React und ReactDOM 18.3.1 als eigene Dateien |
 | `sw.js` | Service Worker, macht die App offline und installierbar |
 | `manifest.webmanifest` | App Name und Icons fürs Installieren |
 | `icons/` | App Icons, blaues Ringsymbol |
+
+Seit 1.5 liegt React im Ordner `vendor` und kommt nicht mehr von unpkg.com.
+Vorher hing der allererste Start daran, dass ein fremdes CDN gerade erreichbar
+war. Die beiden Dateien sind die unveränderten Originale, geprüft gegen die
+SRI-Werte in `support.js`. Umgestellt wird über `window.__resources` im Kopf
+von `index.html`, `support.js` selbst bleibt dadurch unverändert. Damit lädt
+die App nichts mehr von außen.
 
 ## Wo die Daten liegen
 
