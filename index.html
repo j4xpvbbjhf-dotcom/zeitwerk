@@ -54,7 +54,7 @@ if ('serviceWorker' in navigator) {
           </div>
           <span style="font:700 19px var(--f);letter-spacing:-.2px">Zeitwerk</span>
         </div>
-        <div style="font:12px var(--f);color:var(--muted,#8b93a1)">{{ todayLong }}</div>
+        <div style="font:12px var(--f);color:var(--muted,#8b93a1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:10px">{{ profileName }} · {{ todayLong }}</div>
       </div>
 
       <div style="display:flex;flex-direction:column;align-items:center;margin:2px 0 16px">
@@ -254,6 +254,20 @@ if ('serviceWorker' in navigator) {
     <div style="animation:zwFade .25s ease both">
       <h1 style="font:700 30px var(--f);letter-spacing:-.4px;margin:2px 0 18px">Einstellungen</h1>
 
+      <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 4px 8px">Profil</div>
+      <div style="background:var(--surface,#171a20);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:22px">
+        <button onClick="{{ openProfile }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border:none;background:transparent;color:var(--fg,#eef1f5);cursor:pointer;text-align:left;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0">
+            <div style="width:38px;height:38px;border-radius:50%;background:var(--accentSoft,rgba(76,130,247,.16));color:var(--accent,#4c82f7);display:flex;align-items:center;justify-content:center;font:700 15px var(--f);flex-shrink:0">{{ profileInitial }}</div>
+            <div style="min-width:0">
+              <div style="font:15px var(--f);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ profileName }}</div>
+              <div style="font:12px var(--f);color:var(--muted,#8b93a1)">{{ profileHint }}</div>
+            </div>
+          </div>
+          <svg width="8" height="14" viewBox="0 0 8 14" style="flex-shrink:0"><path d="M1 1l6 6-6 6" stroke="var(--muted,#8b93a1)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
       <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 4px 8px">Erscheinungsbild</div>
       <div style="display:flex;gap:6px;background:var(--surface2,#1f232b);border-radius:13px;padding:4px;margin-bottom:22px">
         <button onClick="{{ setLight }}" style="flex:1;height:36px;border:none;border-radius:9px;font:600 13px var(--f);cursor:pointer;background:{{ thLightBg }};color:{{ thLightFg }};transition:background .15s,color .15s">Hell</button>
@@ -299,16 +313,20 @@ if ('serviceWorker' in navigator) {
 
       <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 4px 8px">Daten</div>
       <div style="background:var(--surface,#171a20);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:22px">
+        <button onClick="{{ syncNow }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--fg,#eef1f5);cursor:pointer;text-align:left;gap:10px">
+          <div style="flex:1;min-width:0"><div style="font:15px var(--f)">Sicherung</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">{{ syncSub }}</div></div>
+          <span style="flex-shrink:0;width:9px;height:9px;border-radius:50%;background:{{ syncDot }}"></span>
+        </button>
         <button onClick="{{ openExport }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--fg,#eef1f5);cursor:pointer;text-align:left;gap:10px">
           <div><div style="font:15px var(--f)">Verlauf exportieren</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">CSV für Excel · Zeitraum wählbar</div></div>
           <svg width="8" height="14" viewBox="0 0 8 14" style="flex-shrink:0"><path d="M1 1l6 6-6 6" stroke="var(--muted,#8b93a1)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <button onClick="{{ askWipe }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border:none;background:transparent;color:var(--danger,#f06a5a);cursor:pointer;text-align:left;gap:10px">
-          <div><div style="font:15px var(--f)">Alle Daten löschen</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">{{ entryCountStr }} auf diesem Gerät</div></div>
+          <div><div style="font:15px var(--f)">Alle Daten löschen</div><div style="font:12px var(--f);color:var(--muted,#8b93a1)">{{ entryCountStr }} von {{ profileName }}</div></div>
         </button>
       </div>
 
-      <div style="text-align:center;font:12px/1.6 var(--f);color:var(--muted,#8b93a1);padding:4px 0 8px">Zeitwerk · Version {{ version }}<br/>Die Daten liegen nur auf diesem Gerät</div>
+      <div style="text-align:center;font:12px/1.6 var(--f);color:var(--muted,#8b93a1);padding:4px 0 8px">Zeitwerk · Version {{ version }}<br/>{{ footerNote }}</div>
     </div>
     </sc-if>
 
@@ -434,9 +452,91 @@ if ('serviceWorker' in navigator) {
   <div style="position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:26px">
     <div style="width:100%;max-width:380px;background:var(--surface,#171a20);border:1px solid var(--border);border-radius:26px;padding:24px 22px;text-align:center">
       <div style="font:700 19px var(--f);margin-bottom:8px">Wirklich alles löschen?</div>
-      <div style="font:14px/1.5 var(--f);color:var(--muted,#8b93a1);margin-bottom:20px">{{ entryCountStr }} und die laufende Erfassung werden von diesem Gerät entfernt. Das lässt sich nicht rückgängig machen.</div>
+      <div style="font:14px/1.5 var(--f);color:var(--muted,#8b93a1);margin-bottom:20px">{{ entryCountStr }} und die laufende Erfassung von {{ profileName }} werden entfernt. Andere Profile auf diesem Gerät bleiben unberührt. Das lässt sich nicht rückgängig machen.</div>
       <button onClick="{{ doWipe }}" style="width:100%;height:50px;border:none;border-radius:15px;background:var(--danger,#f06a5a);color:#fff;font:700 16px var(--f);cursor:pointer;margin-bottom:10px">Alles löschen</button>
       <button onClick="{{ cancelWipe }}" style="width:100%;height:44px;border:none;background:transparent;color:var(--muted,#8b93a1);font:600 14px var(--f);cursor:pointer">Abbrechen</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ PROFIL ============ -->
+  <sc-if value="{{ profileOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeProfile }}" style="position:fixed;inset:0;z-index:86;background:rgba(0,0,0,.5);display:flex;align-items:flex-end">
+    <div onClick="{{ swallow }}" style="width:100%;max-height:92%;overflow-y:auto;background:var(--bg,#131519);border-radius:28px 28px 0 0;border-top:1px solid var(--border);padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 26px);animation:zwSheet .3s ease">
+      <div style="width:38px;height:5px;border-radius:3px;background:var(--border);margin:0 auto 18px"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <h2 style="font:700 22px var(--f);margin:0">Profil</h2>
+        <button onClick="{{ closeProfile }}" style="border:none;background:var(--surface2,#1f232b);color:var(--muted,#8b93a1);width:30px;height:30px;border-radius:50%;font:700 15px var(--f);cursor:pointer">✕</button>
+      </div>
+
+      <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 2px 6px">Dein Name</div>
+      <input value="{{ profileName }}" onInput="{{ onRename }}" placeholder="Dein Name" style="width:100%;height:48px;border:1px solid var(--border);border-radius:14px;background:var(--surface,#171a20);color:var(--fg,#eef1f5);padding:0 14px;outline:none;font:15px var(--f)"/>
+      <div style="font:12px/1.5 var(--f);color:var(--muted,#8b93a1);margin:8px 2px 20px">Der Name steht im CSV Export und im Dateinamen, damit sich die Zeiten später zuordnen lassen.</div>
+
+      <sc-if value="{{ hasOthers }}" hint-placeholder-val="{{ false }}">
+        <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 2px 8px">Auf dieses Profil wechseln</div>
+        <div style="background:var(--surface,#171a20);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:20px">
+          <sc-for list="{{ otherProfiles }}" as="p" hint-placeholder-count="1">
+            <button onClick="{{ p.onSwitch }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 16px;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--fg,#eef1f5);cursor:pointer;text-align:left">
+              <div style="width:34px;height:34px;border-radius:50%;background:var(--surface2,#1f232b);color:var(--muted,#8b93a1);display:flex;align-items:center;justify-content:center;font:700 14px var(--f);flex-shrink:0">{{ p.initial }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font:15px var(--f);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</div>
+                <div style="font:12px var(--f);color:var(--muted,#8b93a1)">{{ p.sub }}</div>
+              </div>
+              <span style="font:700 13px var(--f);color:var(--accent,#4c82f7);flex-shrink:0">Wechseln</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ addOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="font:11px var(--f);color:var(--muted,#8b93a1);text-transform:uppercase;letter-spacing:.5px;margin:0 2px 6px">Neue Person</div>
+        <input value="{{ addName }}" onInput="{{ onAddName }}" placeholder="Name der Person" style="width:100%;height:48px;border:1px solid var(--border);border-radius:14px;background:var(--surface,#171a20);color:var(--fg,#eef1f5);padding:0 14px;outline:none;font:15px var(--f);margin-bottom:10px"/>
+        <button onClick="{{ addProfile }}" style="width:100%;height:50px;border:none;border-radius:15px;background:var(--accent,#4c82f7);color:#fff;font:700 16px var(--f);cursor:pointer">Anlegen und wechseln</button>
+        <button onClick="{{ closeAdd }}" style="width:100%;height:42px;margin-top:6px;border:none;background:transparent;color:var(--muted,#8b93a1);font:600 14px var(--f);cursor:pointer">Abbrechen</button>
+      </sc-if>
+      <sc-if value="{{ addClosed }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ openAdd }}" style="width:100%;height:50px;border:1px solid var(--border);border-radius:15px;background:var(--surface2,#1f232b);color:var(--fg,#eef1f5);font:700 15px var(--f);cursor:pointer">Weitere Person hinzufügen</button>
+      </sc-if>
+
+      <sc-if value="{{ canDelProfile }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ askDelProfile }}" style="width:100%;height:44px;margin-top:12px;border:none;background:transparent;color:var(--danger,#f06a5a);font:600 14px var(--f);cursor:pointer">Dieses Profil löschen</button>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ PROFIL LÖSCHEN ============ -->
+  <sc-if value="{{ delProfileOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:92;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:26px">
+    <div style="width:100%;max-width:380px;background:var(--surface,#171a20);border:1px solid var(--border);border-radius:26px;padding:24px 22px;text-align:center">
+      <div style="font:700 19px var(--f);margin-bottom:8px">Profil {{ profileName }} löschen?</div>
+      <div style="font:14px/1.5 var(--f);color:var(--muted,#8b93a1);margin-bottom:20px">{{ entryCountStr }} und alle Einstellungen dieser Person werden vom Gerät entfernt. Das lässt sich nicht rückgängig machen. Danach ist {{ nextProfileName }} aktiv.</div>
+      <button onClick="{{ doDelProfile }}" style="width:100%;height:50px;border:none;border-radius:15px;background:var(--danger,#f06a5a);color:#fff;font:700 16px var(--f);cursor:pointer;margin-bottom:10px">Profil löschen</button>
+      <button onClick="{{ cancelDelProfile }}" style="width:100%;height:44px;border:none;background:transparent;color:var(--muted,#8b93a1);font:600 14px var(--f);cursor:pointer">Abbrechen</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ ANMELDUNG BEIM ERSTEN START ============ -->
+  <sc-if value="{{ setupOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:100;background:var(--bg,#131519);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 30px) 26px calc(env(safe-area-inset-bottom,0px) + 30px);overflow-y:auto">
+    <div style="width:100%;max-width:400px;animation:zwFade .3s ease both">
+      <div style="display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:26px">
+        <div style="width:64px;height:64px;border-radius:20px;background:var(--surface2,#1f232b);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+          <svg width="36" height="36" viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" fill="none" stroke="var(--accent,#4c82f7)" stroke-width="2.8"/><circle cx="17" cy="17" r="6.5" fill="none" stroke="var(--fg,#eef1f5)" stroke-width="2.8" stroke-opacity=".55"/><circle cx="17" cy="17" r="2" fill="var(--fg,#eef1f5)"/></svg>
+        </div>
+        <div style="font:700 26px var(--f);letter-spacing:-.4px;margin-bottom:8px">Willkommen bei Zeitwerk</div>
+        <div style="font:14px/1.55 var(--f);color:var(--muted,#8b93a1)">Trag deinen Namen ein, damit die erfassten Zeiten dir zugeordnet sind. Du wirst danach nicht mehr gefragt.</div>
+      </div>
+
+      <sc-if value="{{ hasLegacy }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--accentSoft,rgba(76,130,247,.16));border:1px solid var(--border);border-radius:14px;padding:13px 15px;font:13px/1.5 var(--f);color:var(--fg,#eef1f5);margin-bottom:16px">Deine bisher erfassten Zeiten sind noch da und werden diesem Namen zugeordnet.</div>
+      </sc-if>
+
+      <input value="{{ setupName }}" onInput="{{ onSetupName }}" placeholder="Dein Name" style="width:100%;height:54px;border:1px solid var(--border);border-radius:16px;background:var(--surface,#171a20);color:var(--fg,#eef1f5);padding:0 16px;outline:none;font:16px var(--f);margin-bottom:12px"/>
+      <button onClick="{{ createProfile }}" style="width:100%;height:54px;border:none;border-radius:17px;background:var(--accent,#4c82f7);color:#fff;font:700 16px var(--f);cursor:pointer;box-shadow:0 8px 20px rgba(76,130,247,.3)">Los geht es</button>
+      <div style="font:12px/1.6 var(--f);color:var(--muted,#8b93a1);text-align:center;margin-top:18px">Kein Konto, kein Passwort, kein Server. Der Name bleibt auf diesem Gerät und dient nur der Zuordnung. Weitere Personen lassen sich später in den Einstellungen anlegen.</div>
     </div>
   </div>
   </sc-if>
@@ -451,8 +551,31 @@ if ('serviceWorker' in navigator) {
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
+// Speicheraufbau seit 1.2
+//   zeitwerk.profiles  Liste der Personen auf diesem Gerät plus das aktive Profil
+//   zeitwerk.v1.<id>   die Daten einer Person, gleicher Aufbau wie früher
+//   zeitwerk.v1        Stand vor 1.2, wird einmal übernommen und danach als
+//                      Sicherung liegen gelassen, nie mehr beschrieben
 const ZW_KEY = 'zeitwerk.v1';
-const ZW_VERSION = '1.1';
+const ZW_INDEX_KEY = 'zeitwerk.profiles';
+const ZW_DATA_PREFIX = 'zeitwerk.v1.';
+const ZW_VERSION = '1.3';
+
+// Sicherung seit 1.3
+// Die App schickt den kompletten Verlauf einer Person an eine Google Apps
+// Script Web App, die daraus ein Tabellenblatt pflegt. Gesendet wird nur,
+// wenn sich am Verlauf wirklich etwas geändert hat. Was bereits angekommen
+// ist, steht unter zeitwerk.sync.<profil-id>, damit nach einem Neustart
+// nichts doppelt hochgeht.
+//
+// Bleibt ZW_SYNC_URL leer, ist die Sicherung schlicht aus und die App
+// verhält sich wie vorher. Einrichtung siehe Backup/Einrichtung.md.
+const ZW_SYNC_URL = '';
+const ZW_SYNC_SECRET = 'B6vSrCJahSAfw5mRqduzJvuxOQH2tL8f';
+const ZW_SYNC_PREFIX = 'zeitwerk.sync.';
+const ZW_SYNC_AT_KEY = 'zeitwerk.sync.at';
+const ZW_SYNC_WAIT = 4000;                                       // Ruhe abwarten, bevor gesendet wird
+const ZW_SYNC_RETRY = 300000;                                    // nach einem Fehlschlag in 5 Minuten erneut
 const DAYS_SHORT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 // Ein Monat wird als 4,33 Wochen gerechnet, also 52 Wochen auf 12 Monate.
@@ -461,6 +584,8 @@ const MONTH_WEEKS = 4.33;
 class Component extends DCLogic {
   state = {
     tab: 'home',
+    profiles: [], activeId: null,
+    setupName: '', profileOpen: false, addOpen: false, addName: '', delProfileOpen: false,
     themeMode: 'auto', systemDark: true,
     entries: [],
     weeklyHours: 38.5,
@@ -492,17 +617,33 @@ class Component extends DCLogic {
     this._t = setInterval(() => this.tick(), 1000);
     // Kommt die App aus dem Hintergrund zurück, sofort nachziehen statt bis
     // zum nächsten Sekundentakt zu warten.
-    this._vis = () => { if (!document.hidden) this.tick(); };
+    this._vis = () => {
+      if (document.hidden) { this.syncBeacon(); return; }
+      this.tick();
+      this.syncSoon(1000);
+    };
     document.addEventListener('visibilitychange', this._vis);
     window.addEventListener('focus', this._vis);
+
+    // Stand der letzten Sicherung für die Anzeige.
+    this._syncAt = Number(localStorage.getItem(ZW_SYNC_AT_KEY)) || 0;
+    this._syncDirty = false;
+    this._syncFail = false;
+    // Beim Start einmal nachziehen. Deckt ab, was beim letzten Mal nicht
+    // mehr hochgegangen ist, etwa weil das Handy offline war.
+    this.syncSoon(2000);
+    this._bye = () => this.syncBeacon();
+    window.addEventListener('pagehide', this._bye);
   }
 
   componentWillUnmount() {
     clearInterval(this._t);
     clearTimeout(this._toastT);
+    clearTimeout(this._syncT);
     if (this._mq && this._mqL) this._mq.removeEventListener('change', this._mqL);
     document.removeEventListener('visibilitychange', this._vis);
     window.removeEventListener('focus', this._vis);
+    window.removeEventListener('pagehide', this._bye);
   }
 
   componentDidUpdate() { this.save(); }
@@ -526,28 +667,56 @@ class Component extends DCLogic {
 
   // ============================ Speichern ============================
 
-  load() {
-    let raw = null;
-    try { raw = localStorage.getItem(ZW_KEY); } catch (e) {}
-    if (!raw) { this._saved = null; return; }
-    try {
-      const d = JSON.parse(raw);
-      const patch = {};
-      if (Array.isArray(d.entries)) patch.entries = d.entries;
-      if (typeof d.weeklyHours === 'number') patch.weeklyHours = d.weeklyHours;
-      if (d.sollBasis === 'week' || d.sollBasis === 'today') patch.sollBasis = d.sollBasis;
-      if (typeof d.breakGoalMin === 'number') patch.breakGoalMin = d.breakGoalMin;
-      if (typeof d.reminderMins === 'number') patch.reminderMins = d.reminderMins;
-      if (typeof d.themeMode === 'string') patch.themeMode = d.themeMode;
+  readJson(key) {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+  }
+
+  // Frischer Stand einer Person, wenn noch nichts gespeichert ist.
+  profileDefaults() {
+    return { entries: [], weeklyHours: 38.5, sollBasis: 'week', breakGoalMin: 30, reminderMins: 360, themeMode: 'auto', run: null };
+  }
+
+  // Gespeicherte Daten in einen vollständigen Zustand übersetzen. Immer von den
+  // Vorgaben aus, damit beim Profilwechsel nichts von der Person davor hängen bleibt.
+  dataPatch(d) {
+    const p = this.profileDefaults();
+    if (d && typeof d === 'object') {
+      if (Array.isArray(d.entries)) p.entries = d.entries;
+      if (typeof d.weeklyHours === 'number') p.weeklyHours = d.weeklyHours;
+      if (d.sollBasis === 'week' || d.sollBasis === 'today') p.sollBasis = d.sollBasis;
+      if (typeof d.breakGoalMin === 'number') p.breakGoalMin = d.breakGoalMin;
+      if (typeof d.reminderMins === 'number') p.reminderMins = d.reminderMins;
+      if (typeof d.themeMode === 'string') p.themeMode = d.themeMode;
       if (d.run && typeof d.run.startedAt === 'number') {
-        patch.run = { pauses: [], note: '', remindDone: false, snooze: 0, ...d.run };
+        p.run = { pauses: [], note: '', remindDone: false, snooze: 0, ...d.run };
       }
-      this.setState(patch);
-    } catch (e) {}
+    }
+    return p;
+  }
+
+  newProfileId() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+  load() {
+    const idx = this.readJson(ZW_INDEX_KEY);
+    const list = idx && Array.isArray(idx.list)
+      ? idx.list.filter(p => p && p.id).map(p => ({ id: String(p.id), name: String(p.name || 'Ich') }))
+      : [];
+    if (list.length) {
+      const activeId = list.some(p => p.id === idx.activeId) ? idx.activeId : list[0].id;
+      this._saved = null; this._savedIdx = null;
+      this.setState({ profiles: list, activeId, ...this.dataPatch(this.readJson(ZW_DATA_PREFIX + activeId)) });
+      return;
+    }
+    // Noch kein Profil. Der Stand aus einer Version vor 1.2 wird beim Anlegen
+    // des ersten Profils übernommen.
+    this._legacy = this.readJson(ZW_KEY);
+    this._saved = null; this._savedIdx = null;
+    this.setState({ profiles: [], activeId: null });
   }
 
   save() {
     const s = this.state;
+    if (!s.activeId) return;                                   // vor der Anmeldung nichts schreiben
     const data = {
       v: 1,
       entries: s.entries,
@@ -558,9 +727,233 @@ class Component extends DCLogic {
       themeMode: s.themeMode,
       run: s.run,
     };
+    let changed = false;
     const json = JSON.stringify(data);
-    if (json === this._saved) return;
-    try { localStorage.setItem(ZW_KEY, json); this._saved = json; } catch (e) {}
+    if (json !== this._saved) {
+      try { localStorage.setItem(ZW_DATA_PREFIX + s.activeId, json); this._saved = json; } catch (e) {}
+      changed = true;
+    }
+    const idx = JSON.stringify({ activeId: s.activeId, list: s.profiles });
+    if (idx !== this._savedIdx) {
+      try { localStorage.setItem(ZW_INDEX_KEY, idx); this._savedIdx = idx; } catch (e) {}
+      changed = true;
+    }
+    // Kein setState hier. save() läuft aus componentDidUpdate, ein setState
+    // an dieser Stelle würde sich selbst wieder aufrufen. Die Anzeige liest
+    // die Felder direkt, und gerendert wird ohnehin jede Sekunde.
+    if (changed) { this._syncDirty = true; this.syncSoon(); }
+  }
+
+  // ============================ Sicherung ============================
+
+  syncOn() { return /^https?:\/\//.test(ZW_SYNC_URL); }
+
+  // Kleiner Streuwert über den Inhalt. Er muss nur erkennen, ob sich seit
+  // dem letzten erfolgreichen Senden etwas geändert hat.
+  syncHash(str) {
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) h = (((h * 33) ^ str.charCodeAt(i)) >>> 0);
+    return h.toString(36) + '.' + str.length;
+  }
+
+  // Nur die Felder, die im Tabellenblatt landen. Einstellungen und die
+  // laufende Erfassung bleiben auf dem Gerät.
+  syncEntries(data) {
+    const list = data && Array.isArray(data.entries) ? data.entries : [];
+    return list.map(e => ({
+      id: e.id, date: e.date, start: e.start, end: e.end,
+      worked: e.worked, brk: e.brk, note: e.note || '',
+    }));
+  }
+
+  // Der Stand einer Person. Die aktive steht im Zustand und ist dort
+  // aktueller als im Speicher, die anderen kommen aus dem Speicher.
+  syncData(id) {
+    return id === this.state.activeId
+      ? { entries: this.state.entries }
+      : this.readJson(ZW_DATA_PREFIX + id);
+  }
+
+  syncSoon(delay) {
+    if (!this.syncOn()) return;
+    clearTimeout(this._syncT);
+    this._syncT = setTimeout(() => this.syncAll(), delay == null ? ZW_SYNC_WAIT : delay);
+  }
+
+  // Alle Profile des Geräts durchgehen, nicht nur das aktive. Sonst würde
+  // der Stand einer Person, die gerade nicht angemeldet ist, nie ankommen.
+  async syncAll() {
+    if (!this.syncOn() || this._syncBusy) return;
+    const profiles = this.state.profiles;
+    if (!profiles.length) return;
+
+    this._syncBusy = true;
+    let ok = true;
+    for (const p of profiles) {
+      try {
+        if (!(await this.syncProfile(p.id, p.name))) ok = false;
+      } catch (e) { ok = false; }
+    }
+    this._syncBusy = false;
+    this._syncFail = !ok;
+    if (ok) {
+      this._syncDirty = false;
+      this._syncAt = Date.now();
+      try { localStorage.setItem(ZW_SYNC_AT_KEY, String(this._syncAt)); } catch (e) {}
+    } else {
+      this.syncSoon(ZW_SYNC_RETRY);
+    }
+  }
+
+  // Gibt true zurück, wenn der Stand dieser Person beim Endpunkt liegt.
+  // Unverändert gilt ebenfalls als erledigt.
+  async syncProfile(id, name) {
+    const entries = this.syncEntries(this.syncData(id));
+    const body = JSON.stringify(entries);
+    const hash = this.syncHash(name + '|' + body);
+    const mark = this.readJson(ZW_SYNC_PREFIX + id);
+    if (mark && mark.hash === hash) return true;
+
+    const res = await fetch(ZW_SYNC_URL, {
+      method: 'POST',
+      // text/plain, sonst verlangt der Browser eine Vorabfrage, die Apps
+      // Script nicht beantwortet.
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        secret: ZW_SYNC_SECRET,
+        profileId: id,
+        name: name || '',
+        version: ZW_VERSION,
+        agent: navigator.userAgent,
+        entries,
+      }),
+    });
+    if (!res.ok) return false;
+    const out = await res.json().catch(() => null);
+    if (!out || !out.ok) return false;
+
+    try { localStorage.setItem(ZW_SYNC_PREFIX + id, JSON.stringify({ hash, at: Date.now() })); } catch (e) {}
+    return true;
+  }
+
+  // Letzter Versuch, wenn die App weggelegt wird. sendBeacon läuft weiter,
+  // auch wenn die Seite in dem Moment verschwindet.
+  syncBeacon() {
+    if (!this.syncOn() || !this._syncDirty) return;
+    const s = this.state;
+    if (!s.activeId) return;
+    try {
+      const payload = JSON.stringify({
+        secret: ZW_SYNC_SECRET,
+        profileId: s.activeId,
+        name: this.profileName(),
+        version: ZW_VERSION,
+        agent: navigator.userAgent,
+        entries: this.syncEntries({ entries: s.entries }),
+      });
+      // Die Quittung sehen wir nicht, deshalb bleibt die Marke ungesetzt.
+      // Beim nächsten Start geht der Stand dann noch einmal sauber hoch.
+      navigator.sendBeacon(ZW_SYNC_URL, new Blob([payload], { type: 'text/plain;charset=utf-8' }));
+    } catch (e) {}
+  }
+
+  // Text der Statuszeile in den Einstellungen. Antippen sichert sofort.
+  syncSub() {
+    if (!this.syncOn()) return 'Nicht eingerichtet · Daten nur auf diesem Gerät';
+    if (this._syncBusy) return 'Läuft gerade';
+    if (this._syncFail) return 'Letzter Versuch fehlgeschlagen · Antippen für erneut';
+    if (this._syncDirty) return 'Ausstehend · Antippen für sofort';
+    if (!this._syncAt) return 'Noch nichts gesichert · Antippen für sofort';
+
+    const d = new Date(this._syncAt);
+    const today = this.iso(new Date());
+    const when = this.iso(d) === today ? 'heute' : this.dm(this.iso(d));
+    return 'Zuletzt ' + when + ' um ' + this.hhmm(this._syncAt);
+  }
+
+  // Von Hand aus den Einstellungen.
+  syncNow() {
+    if (!this.syncOn()) { this.toast('Sicherung ist nicht eingerichtet'); return; }
+    this.toast('Sicherung läuft');
+    this.syncSoon(0);
+  }
+
+  // ============================ Profile ============================
+
+  activeProfile() { return this.state.profiles.find(p => p.id === this.state.activeId) || null; }
+  profileName() { const p = this.activeProfile(); return p ? p.name : ''; }
+
+  // Erstes Profil beim allerersten Start. Ein vorhandener Stand von vor 1.2
+  // wandert dabei unverändert mit.
+  createProfile() {
+    const name = (this.state.setupName || '').trim() || 'Ich';
+    const id = this.newProfileId();
+    this._saved = null; this._savedIdx = null;
+    this.setState({
+      profiles: [{ id, name }], activeId: id, setupName: '', tab: 'home',
+      ...this.dataPatch(this._legacy),
+    });
+    this.toast(this._legacy ? 'Willkommen zurück, ' + name : 'Willkommen, ' + name);
+  }
+
+  openProfile() { this.setState({ profileOpen: true, addOpen: false, addName: '' }); }
+  closeProfile() { this.setState({ profileOpen: false, addOpen: false, addName: '' }); }
+  openAdd() { this.setState({ addOpen: true, addName: '' }); }
+  closeAdd() { this.setState({ addOpen: false, addName: '' }); }
+
+  renameProfile(v) {
+    this.setState(s => ({ profiles: s.profiles.map(p => p.id === s.activeId ? { ...p, name: v } : p) }));
+  }
+
+  // Vor jedem Wechsel den laufenden Stand wegschreiben, sonst geht die letzte
+  // Änderung verloren. _saved zurücksetzen, damit der neue Schlüssel sicher
+  // beschrieben wird, auch wenn die Daten zufällig gleich aussehen.
+  switchProfile(id) {
+    const s = this.state;
+    if (id === s.activeId) { this.closeProfile(); return; }
+    this.save();
+    this._saved = null;
+    const p = s.profiles.find(x => x.id === id);
+    this.setState({
+      activeId: id, tab: 'home',
+      profileOpen: false, addOpen: false, addName: '',
+      editOpen: false, exportOpen: false, reminderOpen: false, wipeOpen: false, delProfileOpen: false,
+      ...this.dataPatch(this.readJson(ZW_DATA_PREFIX + id)),
+    });
+    if (p) this.toast(p.name + ' ist jetzt aktiv');
+  }
+
+  addProfile() {
+    const name = (this.state.addName || '').trim();
+    if (!name) { this.toast('Bitte einen Namen eingeben'); return; }
+    const id = this.newProfileId();
+    this.save();
+    this._saved = null;
+    this.setState(s => ({
+      profiles: [...s.profiles, { id, name }], activeId: id, tab: 'home',
+      profileOpen: false, addOpen: false, addName: '',
+      editOpen: false, exportOpen: false, reminderOpen: false, wipeOpen: false,
+      ...this.dataPatch(null),
+    }));
+    this.toast(name + ' angelegt');
+  }
+
+  askDelProfile() { this.setState({ delProfileOpen: true }); }
+  cancelDelProfile() { this.setState({ delProfileOpen: false }); }
+  doDelProfile() {
+    const s = this.state;
+    if (s.profiles.length < 2) { this.setState({ delProfileOpen: false }); return; }
+    const rest = s.profiles.filter(p => p.id !== s.activeId);
+    try { localStorage.removeItem(ZW_DATA_PREFIX + s.activeId); } catch (e) {}
+    const next = rest[0].id;
+    this._saved = null;
+    this.setState({
+      profiles: rest, activeId: next, tab: 'home',
+      delProfileOpen: false, profileOpen: false, addOpen: false, addName: '',
+      editOpen: false, exportOpen: false, reminderOpen: false, wipeOpen: false,
+      ...this.dataPatch(this.readJson(ZW_DATA_PREFIX + next)),
+    });
+    this.toast('Profil gelöscht');
   }
 
   // ============================ Formatierung ============================
@@ -838,21 +1231,31 @@ class Component extends DCLogic {
       .sort((x, y) => x.date === y.date ? x.start.localeCompare(y.start) : x.date.localeCompare(y.date));
   }
 
+  // Der Name steht in jeder Zeile, damit sich mehrere Exporte in Excel
+  // untereinander hängen und nach Person auswerten lassen.
   csv(rows) {
-    let out = 'Datum;Wochentag;Start;Ende;Arbeitszeit;Stunden;Pausenzeit;Notiz\n';
+    const who = (this.profileName() || '').replace(/[;\n\r]/g, ' ');
+    let out = 'Name;Datum;Wochentag;Start;Ende;Arbeitszeit;Stunden;Pausenzeit;Notiz\n';
     rows.forEach(e => {
       const wd = DAYS_SHORT[this.parseIso(e.date).getDay()];
       const dec = (Math.round(e.worked / 36) / 100).toFixed(2).replace('.', ',');
-      out += [this.dmy(e.date), wd, e.start, e.end, this.fmtDur(e.worked), dec, this.fmtDur(e.brk), (e.note || '').replace(/[;\n\r]/g, ' ')].join(';') + '\n';
+      out += [who, this.dmy(e.date), wd, e.start, e.end, this.fmtDur(e.worked), dec, this.fmtDur(e.brk), (e.note || '').replace(/[;\n\r]/g, ' ')].join(';') + '\n';
     });
     return out;
+  }
+
+  // Namen für den Dateinamen entschärfen, Umlaute ausgeschrieben.
+  slug(str) {
+    return String(str || '').toLowerCase()
+      .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'export';
   }
 
   async downloadCsv() {
     const rows = this.exportRows();
     if (!rows.length) { this.toast('Für diesen Zeitraum gibt es nichts'); return; }
     const text = '﻿' + this.csv(rows);                        // BOM, sonst zerlegt Excel die Umlaute
-    const name = 'zeitwerk-' + rows[0].date + '-bis-' + rows[rows.length-1].date + '.csv';
+    const name = 'zeitwerk-' + this.slug(this.profileName()) + '-' + rows[0].date + '-bis-' + rows[rows.length-1].date + '.csv';
     try {
       const file = new File([text], name, { type: 'text/csv' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -1055,6 +1458,26 @@ class Component extends DCLogic {
     const exBg = r => s.exRange === r ? t.accent : 'transparent';
     const exFg = r => s.exRange === r ? '#fff' : t.muted;
 
+    // ---- Profile ----
+    const profName = this.profileName();
+    // Die Zahl der Einträge der anderen Personen nur lesen, wenn das Blatt
+    // offen ist. Sonst liefe das im Sekundentakt mit.
+    const others = s.profiles.filter(p => p.id !== s.activeId).map(p => {
+      let sub = '';
+      if (s.profileOpen) {
+        const d = this.readJson(ZW_DATA_PREFIX + p.id);
+        const n = d && Array.isArray(d.entries) ? d.entries.length : 0;
+        const running = d && d.run && typeof d.run.startedAt === 'number';
+        sub = (n === 1 ? '1 Eintrag' : n + ' Einträge') + (running ? ' · Erfassung läuft' : '');
+      }
+      return {
+        name: p.name,
+        initial: p.name ? p.name.trim().charAt(0).toUpperCase() : '?',
+        sub,
+        onSwitch: () => this.switchProfile(p.id),
+      };
+    });
+
     return {
       t, version: ZW_VERSION,
       todayLong: now.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' }),
@@ -1132,6 +1555,31 @@ class Component extends DCLogic {
       brkGoalSetStr: this.fmtDur(brkGoal) + ' h', incBrkGoal: () => this.incBrkGoal(), decBrkGoal: () => this.decBrkGoal(),
       entryCountStr: s.entries.length === 1 ? '1 Eintrag' : s.entries.length + ' Einträge',
       askWipe: () => this.askWipe(), cancelWipe: () => this.cancelWipe(), doWipe: () => this.doWipe(), wipeOpen: s.wipeOpen,
+
+      syncNow: () => this.syncNow(),
+      syncSub: this.syncSub(),
+      syncDot: !this.syncOn() ? t.muted : this._syncFail ? t.amber : this._syncDirty ? t.muted : t.accent,
+      footerNote: this.syncOn()
+        ? 'Die Daten liegen auf diesem Gerät und werden gesichert'
+        : 'Die Daten liegen nur auf diesem Gerät',
+
+      setupOpen: !s.activeId, hasLegacy: !!this._legacy,
+      setupName: s.setupName,
+      onSetupName: e => { const v = e.target.value; this.setState({ setupName: v }); },
+      createProfile: () => this.createProfile(),
+
+      profileName: profName, profileInitial: profName ? profName.trim().charAt(0).toUpperCase() : '?',
+      profileHint: s.profiles.length > 1 ? 'Angemeldet · ' + s.profiles.length + ' Personen auf diesem Gerät' : 'Angemeldet auf diesem Gerät',
+      profileOpen: s.profileOpen, openProfile: () => this.openProfile(), closeProfile: () => this.closeProfile(),
+      onRename: e => { const v = e.target.value; this.renameProfile(v); },
+      hasOthers: others.length > 0, otherProfiles: others,
+      addOpen: s.addOpen, addClosed: !s.addOpen, addName: s.addName,
+      onAddName: e => { const v = e.target.value; this.setState({ addName: v }); },
+      openAdd: () => this.openAdd(), closeAdd: () => this.closeAdd(), addProfile: () => this.addProfile(),
+      canDelProfile: s.profiles.length > 1,
+      askDelProfile: () => this.askDelProfile(), cancelDelProfile: () => this.cancelDelProfile(),
+      doDelProfile: () => this.doDelProfile(), delProfileOpen: s.delProfileOpen,
+      nextProfileName: others.length ? others[0].name : '',
 
       reminderOpen: s.reminderOpen, sinceBreakStr: this.fmtDur(st.since) + ' h',
       takeBreak: () => this.takeBreak(), dismissReminder: () => this.dismissReminder(),
