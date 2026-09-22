@@ -106,6 +106,20 @@ untereinander hängen und nach Person auswerten.
 Am iPhone geht der Export über das Teilen-Menü, am Mac als Download. Die Datei
 hat ein BOM, damit Excel die Umlaute richtig anzeigt.
 
+### Erinnerung an den Monatsexport
+
+Ist ein Monat vorbei und wurde für ihn noch nicht exportiert, meldet sich die
+App beim Öffnen mit dem Hinweis „Monat vorbei“. Drei Wege hinaus
+
+- **Jetzt exportieren** öffnet den Export mit dem Zeitraum bereits auf den
+  Vormonat gestellt
+- **Morgen erinnern** legt den Hinweis für vierundzwanzig Stunden weg
+- **Schon erledigt** schaltet ihn für diesen Monat ab
+
+Der Hinweis kommt nur, wenn im Vormonat überhaupt etwas erfasst wurde, und er
+gilt je Person. Erkannt wird ein erledigter Monat an einem tatsächlich
+herausgegangenen Export, ein abgebrochenes Teilen zählt nicht.
+
 ## Aufbau der Dateien
 
 | Datei | Zweck |
@@ -164,9 +178,11 @@ Beides startet im Vollbild ohne Browserleiste, genau wie am iPhone.
   der Weg nach draußen ist der CSV Export.
 - Die Profile trennen die Daten, sie schützen sie nicht. Jeder am Gerät kann
   jedes Profil öffnen.
-- Die Pausen-Erinnerung ist ein Dialog in der App. Es gibt keine
-  Push-Benachrichtigung, wenn die App geschlossen ist. Beim nächsten Öffnen
-  wird die überfällige Erinnerung nachgeholt.
+- Pausen-Erinnerung und Erinnerung an den Monatsexport sind Dialoge in der App.
+  Es gibt keine Push-Benachrichtigung, wenn die App geschlossen ist, dafür
+  bräuchte die App einen eigenen Server. Beim nächsten Öffnen wird die
+  überfällige Erinnerung nachgeholt. Wer eine Meldung aufs Handy will, legt
+  sich eine wiederkehrende Erinnerung in der Erinnerungen-App an.
 - Übersicht zeigt immer die laufende Woche beziehungsweise den laufenden
   Monat. Es gibt kein Blättern in vergangene Zeiträume, dafür ist der Verlauf da.
 - Löscht du die Websitedaten im Browser, sind auch die Zeiten weg. Vor einem
